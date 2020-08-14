@@ -22,7 +22,10 @@ def create_app():
     app.config['MAIL_USE_SSL'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
     # sqlalchemy
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123')  # get from key vault
+    if os.environ.get('IS_PROD',None):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@aspj-project/mydb'.format('dbmsuser', 'Henry123')  # get from key vault
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123')  # get from key vault
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
