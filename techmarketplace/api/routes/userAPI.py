@@ -370,7 +370,7 @@ def accountUpdate(username):
         form = AccountForm()
         searchForm = SearchForm()
         if form.validate_on_submit():
-            if utils.banned_characters(form.credit_card.data) or utils.banned_characters(form.address.data,matches='[/\"\'\\\-%<>]'):
+            if utils.banned_characters(form.credit_card.data):
                 # log.logger.critical('Malicious Character detected in /profile/{0}/account/update'.format(username))
                 logout_user()
                 abort(404)
