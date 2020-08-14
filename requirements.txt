@@ -78,7 +78,6 @@ pyrsistent==0.16.0
 python_dateutil==2.6.1
 python_twitter==3.5
 pytz==2020.1
-pywin32==228
 redis==3.5.3
 regex==2020.7.14
 requests==2.22.0
