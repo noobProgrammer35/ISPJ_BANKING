@@ -29,7 +29,6 @@ def create_app():
     # flask-session
     # app.config['SESSION_TYPE'] = 'redis'
     # app.config['SESSION_REDIS'] = redis.from_url('redis://:RZ9IoOQMPab4XGaLee7NUAW6vccBceAU@redis-12106.c56.east-us.azure.cloud.redislabs.com:12106/0')
-    app.config['SESSION_INTERVAL_CLEANUP'] = timedelta(seconds=20)
     #cors
     app.config['CORS_HEADERS'] = 'Content-Type'
 
