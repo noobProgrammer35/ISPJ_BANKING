@@ -1,1 +1,1 @@
-web: gunicorn Application:app
+web: gunicorn techmarketplace.Application:app
