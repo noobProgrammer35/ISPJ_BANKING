@@ -1,20 +1,31 @@
 # bec9fb90-0c7a-417a-809e-6c5417e4ba98
 import logging
+import os
 from flask import request
 from selenium import  webdriver
 import datetime
 import psutil
 from opencensus.ext.azure.log_exporter import AzureLogHandler
-from techmarketplace import Configuration
 from opencensus.ext.azure import metrics_exporter
 from opencensus.stats import aggregation,measure,stats,view
 from opencensus.tags import tag_map
 
+if not os.environ.get('IS_PROD',None):
+    from techmarketplace import Configuration
+
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
-logger.addHandler(AzureLogHandler(
-    connection_string=Configuration.InstrumentKey
-))
+if not os.environ.get('IS_PROD',None):
+    logger.addHandler(AzureLogHandler(
+        connection_string=Configuration.InstrumentKey
+    ))
+else:
+    logger.addHandler(AzureLogHandler(
+        connection_string=os.environ.get('InstrumentKey')
+    ))
+
+
 # print(logger)
 # # # # line = input('tet:')
 # # # # logger.info(line)
