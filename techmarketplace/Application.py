@@ -79,7 +79,7 @@ def before_request():
     app.permanent_session_lifetime = datetime.timedelta(minutes=15)
     session.modified = True
     g.user = current_user
-    test.kvsession_extension.cleanup_sessions(app)
+#     test.kvsession_extension.cleanup_sessions(app)
 
 @app.after_request
 def after_request(response):
