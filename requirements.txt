@@ -89,5 +89,5 @@ simplekv==0.14.1
 six==1.14.0
 urllib3==1.25.8
 vulners==1.5.5
-yarg==0.19
+yarg==0.1.9
 zipp==3.1.0
