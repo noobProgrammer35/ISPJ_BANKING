@@ -1,10 +1,14 @@
 import os
-from techmarketplace import Configuration
 from azure.keyvault.secrets import SecretClient
 from azure.keyvault.keys import KeyClient
 from azure.keyvault.keys.crypto import CryptographyClient,EncryptionAlgorithm
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
 import base64
+
+
+if not os.environ.get('IS_PROD',None):
+    from techmarketplace import Configuration
+
 
 # keyVaultName = os.environ["KEY_VAULT_NAME"]
 # KVUri = "https://" + keyVaultName + ".vault.azure.net"
@@ -27,13 +31,23 @@ import base64
 # print(result.key_id)
 class Vault:
     def __init__(self):
-        self.credential = ClientSecretCredential(
-            tenant_id = Configuration.tenant_id,
-            client_id = Configuration.client_id,
-            client_secret = Configuration.client_secret,
-     )
-        self.secret_client = SecretClient(vault_url=Configuration.vault_url,credential=self.credential)
-        self.key_client = KeyClient(vault_url=Configuration.vault_url,credential=self.credential)
+
+        if os.environ.get('IS_PROD',None):
+            self.credential = ClientSecretCredential(
+                tenant_id=os.environ.get('tenant_id',None),
+                client_id=os.environ.get('client_id',None),
+                client_secret=os.environ('client_secret',None),
+            )
+            self.secret_client = SecretClient(vault_url=os.environ.get('vault_url',None), credential=self.credential)
+            self.key_client = KeyClient(vault_url=os.environ('vault_url',None), credential=self.credential)
+        else:
+            self.credential = ClientSecretCredential(
+                tenant_id = Configuration.tenant_id,
+                client_id = Configuration.client_id,
+                client_secret = Configuration.client_secret,
+         )
+            self.secret_client = SecretClient(vault_url=Configuration.vault_url,credential=self.credential)
+            self.key_client = KeyClient(vault_url=Configuration.vault_url,credential=self.credential)
         self.key_ops = ["encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey"]
 
     def get_secret(self,key):
