@@ -22,13 +22,13 @@ def create_app():
     app.config['MAIL_USE_SSL'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
     # sqlalchemy
-    # if os.environ.get('IS_PROD',None):
-    #     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@https://aspj-project.herokuapp.com//mydb'.format('dbmsuser', 'Henry123')  # get from key vault
-    # else:
-    #     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123')  # get from key vault
-    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    # app.config['SQLALCHEMY_ECHO'] = True
-    # app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
+    if os.environ.get('IS_PROD',None):
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('CLEARDB_DATABASE_URL')
+    else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123')  # get from key vault
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ECHO'] = True
+    app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
     # flask-session
     # app.config['SESSION_TYPE'] = 'redis'
     # app.config['SESSION_REDIS'] = redis.from_url('redis://:RZ9IoOQMPab4XGaLee7NUAW6vccBceAU@redis-12106.c56.east-us.azure.cloud.redislabs.com:12106/0')
