@@ -24,8 +24,8 @@ def create_app():
         app.config['MAIL_PORT'] =  os.environ.get('MAILGUN_SMTP_PORT', 587)
         app.config['MAIL_USERNAME'] = os.environ.get('MAILGUN_SMTP_LOGIN', None)
         app.config['MAIL_PASSWORD'] = os.environ.get('MAILGUN_SMTP_PASSWORD', None)
-        app.config['MAIL_USE_TLS'] = False
-        app.config['MAIL_USE_SSL'] = True
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USE_SSL'] = False
     # else:
     #     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     #     app.config['MAIL_PORT'] = 465
