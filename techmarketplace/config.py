@@ -19,13 +19,21 @@ def create_app():
         app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
     app.config['UPLOAD_FOLDER'] = 'static\\upload'
     # email
-    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-    app.config['MAIL_PORT'] = 465
-    app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
-    app.config['MAIL_USE_TLS'] = False
-    app.config['MAIL_USE_SSL'] = True
-    app.config['WTF_CSRF_TIME_LIMIT'] = 3600
+    if os.environ.get('is_PROD',None):
+        app.config['MAIL_SERVER'] = os.environ.get('MAILGUN_SMTP_SERVER',None)
+        app.config['MAIL_PORT'] =  os.environ.get('MAILGUN_SMTP_PORT', 465)
+        app.config['MAIL_USERNAME'] = os.environ.get('MAILGUN_SMTP_LOGIN', None)
+        app.config['MAIL_PASSWORD'] = os.environ.get('MAILGUN_SMTP_PASSWORD', None)
+        app.config['MAIL_USE_TLS'] = False
+        app.config['MAIL_USE_SSL'] = True
+    else:
+        app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+        app.config['MAIL_PORT'] = 465
+        app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
+        app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
+        app.config['MAIL_USE_TLS'] = False
+        app.config['MAIL_USE_SSL'] = True
+        app.config['WTF_CSRF_TIME_LIMIT'] = 3600
     # sqlalchemy
     if os.environ.get('IS_PROD',None):
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('CLEARDB_DATABASE_URL')
