@@ -20,11 +20,11 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = 'static\\upload'
     # email
     app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
-    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_PORT'] = 465
     app.config['MAIL_USERNAME'] = 'dracula7723@gmail.com'
     app.config['MAIL_PASSWORD'] = 'hellfire67'
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
     # sqlalchemy
     if os.environ.get('IS_PROD',None):
