@@ -22,7 +22,7 @@ def create_app():
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 465
     app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
+    app.config['MAIL_PASSWORD'] = 'dracula123456789'
     app.config['MAIL_USE_TLS'] = False
     app.config['MAIL_USE_SSL'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
