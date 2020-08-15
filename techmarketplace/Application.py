@@ -55,7 +55,7 @@ csp = {
 csrf = CSRFProtect(app)
 #session protection
 paranoid = Paranoid(app)
-talisman = Talisman(app,content_security_policy=csp)
+# talisman = Talisman(app,content_security_policy=csp)
 cors = CORS(app,resource=r'/profile/')
 paranoid.redirect_view = 'localhost:5000/register'
 
@@ -198,8 +198,7 @@ def account(username):
 
             key_vault = vault.Vault()
             credit_card =  key_vault.decrypt(current_user.account.credit_card,username)
-            key_vault.secret_client.close()
-            key_vault.key_client.close()
+            key_vault.close_all_connections()
             return render_template('account.html', searchForm=searchForm, credit_card=credit_card)
         else:
             return render_template('account.html', searchForm=searchForm, credit_card=credit_card)
