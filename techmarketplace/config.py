@@ -20,7 +20,7 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = 'static\\upload'
     # email
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_PORT'] = 587
     app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
     app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
     app.config['MAIL_USE_TLS'] = True
