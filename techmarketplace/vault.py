@@ -39,7 +39,7 @@ class Vault:
                 client_secret=os.environ.get('client_secret',None),
             )
             self.secret_client = SecretClient(vault_url=os.environ.get('vault_url',None), credential=self.credential)
-            self.key_client = KeyClient(vault_url=os.environ('vault_url',None), credential=self.credential)
+            self.key_client = KeyClient(vault_url=os.environ.get('vault_url',None), credential=self.credential)
         else:
             self.credential = ClientSecretCredential(
                 tenant_id = Configuration.tenant_id,
