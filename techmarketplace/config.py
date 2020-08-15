@@ -19,7 +19,7 @@ def create_app():
         app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
     app.config['UPLOAD_FOLDER'] = 'static\\upload'
     # email
-    app.config['MAIL_SERVER'] = 'smtp.sendgrid.com'
+    app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
     app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
