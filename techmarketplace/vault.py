@@ -36,7 +36,7 @@ class Vault:
             self.credential = ClientSecretCredential(
                 tenant_id=os.environ.get('tenant_id',None),
                 client_id=os.environ.get('client_id',None),
-                client_secret=os.environ('client_secret',None),
+                client_secret=os.environ.get('client_secret',None),
             )
             self.secret_client = SecretClient(vault_url=os.environ.get('vault_url',None), credential=self.credential)
             self.key_client = KeyClient(vault_url=os.environ('vault_url',None), credential=self.credential)
