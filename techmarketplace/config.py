@@ -21,8 +21,8 @@ def create_app():
     # email
     app.config['MAIL_SERVER'] = 'smtp.sendgrid.net'
     app.config['MAIL_PORT'] = 587
-    app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
+    app.config['MAIL_USERNAME'] = 'dracula7723@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'hellfire67'
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
