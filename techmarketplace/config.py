@@ -1,6 +1,5 @@
 from flask import Flask
 from techmarketplace import vault
-from techmarketplace import Configuration
 import os
 
 
@@ -27,6 +26,7 @@ def create_app():
     if os.environ.get('IS_PROD',None):
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('CLEARDB_DATABASE_URL')
     else:
+        from techmarketplace import Configuration
         app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format(Configuration.dbuser,Configuration.dbpw)  # get from key vault
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
