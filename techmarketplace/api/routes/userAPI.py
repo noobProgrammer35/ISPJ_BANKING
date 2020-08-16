@@ -107,11 +107,18 @@ def register():
             if resp.headers['Location'] == '/register':
                 return resp
 
-        if utils.read_common_password(form.confirm.data) or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
-            flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
-            resp = make_response(redirect(url_for('register')))
-            if resp.headers['Location'] == '/register':
-                return resp
+        if os.environ.get('IS_PROD',None):
+            if utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(), matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
+                flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
+                resp = make_response(redirect(url_for('register')))
+                if resp.headers['Location'] == '/register':
+                    return resp
+        else:
+            if utils.read_common_password(form.confirm.data) or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
+                flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
+                resp = make_response(redirect(url_for('register')))
+                if resp.headers['Location'] == '/register':
+                    return resp
 
         username = Models.Customer.query.filter_by(username=str(escape(form.username.data))).first()
         email = Models.Customer.query.filter_by(email=str(escape(form.email.data))).first()
@@ -129,7 +136,7 @@ def register():
             confirm_url = url_for('users.confirm_email',token=token, _external=True)
             html = render_template('activate.html',confirm_url=confirm_url)
             subject = 'Please confirm your account'
-            utils.send_email(form.email.data, subject, html)
+            utils.mailgun_send_message(form.email.data,subject,html)
             log.logger.info('A new user has sucessfully registered with username of {0}'.format(form.username.data),extra={'custom_dimensions':{'Source':request.remote_addr}})
             resp = make_response(redirect(url_for('login')))
             if resp.headers['Location'] == '/login':
@@ -144,7 +151,6 @@ def register():
             return redirect(url_for('register'))
     else:
         print(form.username.data)
-            # ban ip addr for next step
     return render_template('register.html',form=form,searchForm=searchForm)
 
 
@@ -499,15 +505,16 @@ def support():
             #log.logger.critical('Malicious character detected in support route')
             abort(404)
         try:
-            mail = Mail(current_app)
-            msg = Message(
-                subject = form.subject.data,
-                recipients=['piethonlee123@gmail.com'],
-                body=form.message.data,
-                sender=form.name.data,
-                reply_to=form.email.data
-            )
-            mail.send(msg)
+            # mail = Mail(current_app)
+            # msg = Message(
+            #     subject = form.subject.data,
+            #     recipients=['piethonlee123@gmail.com'],
+            #     body=form.message.data,
+            #     sender=form.name.data,
+            #     reply_to=form.email.data
+            # )
+            # mail.send(msg)
+            utils.mailgun_send_messageV2('piethonlee123@gmail.com',form.subject.data,form.message.data)
             flash('Email has sent to u')
             redirect(request.url)
         except Exception as message:

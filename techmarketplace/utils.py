@@ -135,3 +135,18 @@ def mailgun_send_message(to,subject,html):
               "subject": subject,
               "html":html})
 
+def mailgun_send_messageV2(to,subject,html):
+    domain = os.environ.get('MAILGUN_DOMAIN',None)
+    url = 'https://api.mailgun.net/v3/{0}/messages'.format(domain)
+    data = 'mailgun@{0}'.format(domain)
+    API = os.environ.get('MAILGUN_API_KEY',None)
+    return requests.post(
+        url,
+        auth=("api", API),
+        data={"from": data,
+              "to": to,
+              "subject": subject,
+              "text":html})
+
+
+
