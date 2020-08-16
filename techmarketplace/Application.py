@@ -55,7 +55,7 @@ csp = {
 csrf = CSRFProtect(app)
 #session protection
 paranoid = Paranoid(app)
-# talisman = Talisman(app,content_security_policy=csp)
+talisman = Talisman(app,content_security_policy=csp)
 cors = CORS(app,resource=r'/profile/')
 paranoid.redirect_view = 'localhost:5000/register'
 
@@ -292,6 +292,11 @@ if __name__ == '__main__':
     #     SESSION_COOKIE_SAMESITE='LAX'
     # )
     if os.environ.get('IS_PROD',None):
+        app.config.update(
+            SESSION_COOKIE_HTTPONLY = True,
+            SESSION_COOKIe_SECURE = True,
+
+        )
         app.run()
     else:
         app.run(debug=True,port=9999)
