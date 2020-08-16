@@ -516,7 +516,9 @@ def support():
             # mail.send(msg)
             utils.mailgun_send_messageV2('piethonlee123@gmail.com',form.subject.data,form.message.data,form.email.data)
             flash('Email has sent to u')
-            redirect(request.url)
+            resp = make_response(redirect(request.url))
+            if resp.headers['Location'] == '/support':
+                return resp
         except Exception as message:
             abort(404)
             log.logger.exception(message)
