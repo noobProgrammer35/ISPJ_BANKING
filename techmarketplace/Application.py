@@ -20,9 +20,6 @@ import redis
 import pickle
 import time
 
-red = redis.Redis(host='redis-12106.c56.east-us.azure.cloud.redislabs.com', port=12106, db=0,
-                   password='RZ9IoOQMPab4XGaLee7NUAW6vccBceAU')
-
 
 
 app = config.create_app()

@@ -19,13 +19,7 @@ import requests
 
 users_blueprint = Blueprint('users',__name__,template_folder='templates')
 
-current_app.config.update({'RECAPTCHA_ENABLED': True,
-                   'RECAPTCHA_SITE_KEY':
-                       '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
-                   'RECAPTCHA_SECRET_KEY':
-                       '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'})
 
-recaptcha = ReCaptcha(app=current_app)
 
 
 
@@ -220,7 +214,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         if utils.banned_characters(form.username.data) or utils.banned_characters(form.password.data):
-            # log.logger.critical('Malicious characters such as \'\"<>#/ detected')
+            log.logger.critical('Malicious characters such as \'\"<>#/ detected')
             print('d')
             errors = 'Invalid username or password'
             abort(404)
@@ -360,7 +354,7 @@ def resend():
     confirm_url = url_for('users.confirm_email', token=token, _external=True)
     html = render_template('activate.html', confirm_url=confirm_url)
     subject = 'Please confirm your account'
-    utils.send_email(current_user.email,subject,html)
+    utils.mailgun_send_message(current_user.email,subject,html)
     flash('Email sent!')
     resp = make_response(redirect(url_for('users.unconfirmed')))
     print(resp.headers['Location'])
@@ -377,7 +371,7 @@ def accountUpdate(username):
         searchForm = SearchForm()
         if form.validate_on_submit():
             if utils.banned_characters(form.credit_card.data):
-                # log.logger.critical('Malicious Character detected in /profile/{0}/account/update'.format(username))
+                log.logger.critical('Malicious Character detected in /profile/{0}/account/update'.format(username))
                 logout_user()
                 abort(404)
             if request.content_type != 'application/x-www-form-urlencoded':
@@ -479,9 +473,9 @@ def reset_password_link(token):
 def search():
     searchForm = SearchForm()
     if searchForm.validate_on_submit():
-        # if utils.banned_characters(searchForm.search.data):
-        #     # log.logger.critical('Malicious character detected in search')
-        #     abort(404)
+        if utils.banned_characters(searchForm.search.data):
+            log.logger.critical('Malicious character detected in search')
+            abort(404)
         if request.content_type != r'application/x-www-form-urlencoded':
             print('dd')
             abort(404)
@@ -502,7 +496,7 @@ def support():
             log.logger.error('Incorrect request content format at /support route')
             abort(404)
         if utils.banned_characters(form.subject.data) or utils.banned_characters(form.message.data,matches='[/\\<>%=]') or utils.banned_characters(form.name.data) or utils.banned_characters(form.email.data):
-            #log.logger.critical('Malicious character detected in support route')
+            log.logger.critical('Malicious character detected in support route')
             abort(404)
         try:
             # mail = Mail(current_app)
@@ -536,8 +530,8 @@ def current():
                 log.logger.error('Incorrect request content format at /current route')
                 abort(404)
             if utils.banned_characters(form.currentPassword.data):
-                # log.logger.critical('Malicious character detected in support route')
-                abort(404)
+                 log.logger.critical('Malicious character detected in support route. An attempt to inject is possible')
+                 abort(404)
             user = Models.Customer.query.filter_by(username=current_user.username).first()
             saved_hash= user.password_hash
             password_hashed = utils.generate_hash(form.currentPassword.data,user.password_salt)

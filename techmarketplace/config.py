@@ -1,19 +1,22 @@
 from flask import Flask
-from techmarketplace.redisession import RedisSessionInterface
-from datetime import timedelta
-import redis
+from techmarketplace import vault
+from techmarketplace import Configuration
 import os
 
 
 def create_app():
+    v = vault.Vault()
+
     app = Flask(__name__)
     # app.session_interface = RedisSessionInterface()
 
     # general
 
     if os.environ.get('IS_PROD',None):
-        app.config['SECRET_KEY'] = b'W\x1aa[\xaa(\x07X\xa3\x9a!A\x13YhJ\xa21\x1fh\x98\xfb\xb5\xc5\x96!\xa0y\x16\xf7\xe4\xb8'
-        app.config['SECURITY_PASSWORD_SALT'] = b"\xe4\xa3@\x93\xed\x9aKb\xee\xa92'\x19\x16hJ"
+        secret_key = v.get_secret('SECRET-KEY')
+        security_password_salt  = v.get_secret(('security-password-salt'))
+        app.config['SECRET_KEY'] = secret_key
+        app.config['SECURITY_PASSWORD_SALT'] = security_password_salt
     else:
         app.config['SECRET_KEY'] = os.urandom(32)
         app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
@@ -24,13 +27,11 @@ def create_app():
     if os.environ.get('IS_PROD',None):
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('CLEARDB_DATABASE_URL')
     else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123')  # get from key vault
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format(Configuration.dbuser,Configuration.dbpw)  # get from key vault
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
-    # flask-session
-    # app.config['SESSION_TYPE'] = 'redis'
-    # app.config['SESSION_REDIS'] = redis.from_url('redis://:RZ9IoOQMPab4XGaLee7NUAW6vccBceAU@redis-12106.c56.east-us.azure.cloud.redislabs.com:12106/0')
+
     #cors
     app.config['CORS_HEADERS'] = 'Content-Type'
 
