@@ -415,7 +415,10 @@ def reset_link():
             token = utils.generate_token(form.email.data)
             password_reset_url = url_for('users.reset_password_link',token=token,_external=True)
             html = render_template('reset_email.html',password_reset_url=password_reset_url)
-            utils.send_email(form.email.data,'Password Recovery',html)
+            if os.environ.get('IS_PROD',None):
+                utils.mailgun_send_message(form.email.data,'Password Recovery',html)
+            else:
+                utils.send_email(form.email.data,'Password Recovery',password_reset_url=password_reset_url)
             flash('WE have emailed you the password link to reset!')
             resp = make_response(redirect(url_for('reset_link')))
             if resp.headers['Location'] == '/reset':
