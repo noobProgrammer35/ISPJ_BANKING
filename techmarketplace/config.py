@@ -24,7 +24,7 @@ def create_app():
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
     # sqlalchemy
     if os.environ.get('IS_PROD',None):
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('CLEARDB_DATABASE_URL')
+        app.config['SQLALCHEMY_DATABASE_URI'] = v.get_secret('DatabaseConnectinString')
     else:
         from techmarketplace import Configuration
         app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format(Configuration.dbuser,Configuration.dbpw)  # get from key vault
@@ -35,4 +35,5 @@ def create_app():
     #cors
     app.config['CORS_HEADERS'] = 'Content-Type'
 
+    v.close_all_connections()
     return app
