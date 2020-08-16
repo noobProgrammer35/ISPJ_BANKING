@@ -17,6 +17,7 @@ def generate_salt(): # salt is IV in hashing, this function generates random 16 
 
 
 def generate_hash(plaintext_password,password_salt):
+    print('')
     password_hash = pbkdf2_hmac(
         'sha256',
         b"%b"  % bytes(plaintext_password,'utf-8'),
