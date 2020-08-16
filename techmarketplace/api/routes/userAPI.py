@@ -438,6 +438,7 @@ def reset_password_link(token):
         abort(404)
     searchForm = SearchForm()
     email = utils.confirmation_token(token)
+    print(email)
     if not email:
         flash('This link has expired!')
         resp = make_response(redirect(url_for('login')))
