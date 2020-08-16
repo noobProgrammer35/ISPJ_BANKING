@@ -120,3 +120,13 @@ def read_common_password(field):
 
     if str(field.lower()) in dict:
         return True
+
+def mailgun_send_message(to,subject,html):
+    return requests.post(
+        "https://api.mailgun.net/v3/sandbox630fe3589aeb45b2b8b07a9d56e37250.mailgun.org/messages",
+        auth=("api", "a148a5a38538e5d423a54b42a5fabfc3-07e45e2a-0625548d"),
+        data={"from": "mailgun@sandbox630fe3589aeb45b2b8b07a9d56e37250.mailgun.org",
+              "to": to,
+              "subject": subject,
+              "html":html})
+
