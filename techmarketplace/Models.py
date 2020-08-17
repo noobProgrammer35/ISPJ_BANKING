@@ -7,11 +7,6 @@ from flask_login import LoginManager,current_user, UserMixin,login_user,Anonymou
 import os
 
 
-# current_app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123') # get from key vault
-# current_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# current_app.config['SQLALCHEMY_ECHO'] = True
-# current_app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
-
 database = SQLAlchemy(current_app)
 login = LoginManager(current_app)
 login.login_view = '/login'
@@ -49,6 +44,7 @@ class Customer(database.Model, UserMixin):
         self.verified = verified
         self.password_salt = self.generate_salt()
         self.password_hash = self.generate_hash(password,self.password_salt)
+        self.failed_attempt = 0
 
     def generate_hash(self,plaintext_password,salt):
         password_hash = pbkdf2_hmac(
