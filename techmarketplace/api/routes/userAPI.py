@@ -282,6 +282,8 @@ def login():
                     if user.failed_attempt < 5:
                         errors = 'Invalid username or password'
                         user.failed_attempt += 1
+                        if user.failed_attempt == 5:
+                            utils.mailgun_send_message(user.email,'test','<p>dwdwd</p>')
                         user.failed_login_time = datetime.now()
                         Models.database.session.commit()
                     elif user.failed_attempt >= 5:

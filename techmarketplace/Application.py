@@ -65,7 +65,7 @@ def before_request():
         last_login = session['last_login']
         time = datetime.datetime.now() - last_login
         print(time.seconds)
-        if time.seconds > 1800:  # 30minutes
+        if time.seconds > 900:  # 30minutes
             logout_user()
             session.destroy()
             resp = make_response(redirect(url_for('home_page')))
@@ -73,7 +73,7 @@ def before_request():
                 return resp
     # print(psutil.net_io_counters())
     session.permanent = True
-    app.permanent_session_lifetime = datetime.timedelta(minutes=15)
+    app.permanent_session_lifetime = datetime.timedelta(days=1)
     session.modified = True
     g.user = current_user
     test.kvsession_extension.cleanup_sessions(app)
