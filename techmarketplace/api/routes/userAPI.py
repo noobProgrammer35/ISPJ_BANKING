@@ -283,6 +283,7 @@ def login():
                         errors = 'Invalid username or password'
                         user.failed_attempt += 1
                         if user.failed_attempt == 5:
+                            log.logger.critical('An attempt to sign in with {0} has failed more than 5 times. Please investigate this issue'.format(user.username))
                             utils.mailgun_send_message(user.email,'test','<p>dwdwd</p>')
                         user.failed_login_time = datetime.now()
                         Models.database.session.commit()
