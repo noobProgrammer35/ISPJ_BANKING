@@ -226,13 +226,22 @@ def login():
         user = Models.Customer.query.filter_by(username=str(escape(form.username.data))).first()
         if user is not None:
             if user.failed_login_time is not None:
-                date = user.failed_login_time
-                now = datetime.now()
-                span = now - date
-                print(span.days)
-                if span.days > 1:
-                    user.failed_attempt = 0
-                    Models.database.session.commit()
+                if user.failed_attempt >=5:
+                    date = user.failed_login_time
+                    now = datetime.now()
+                    span = now - date
+                    # unban after 1 day
+                    if span.days > 1:
+                        user.failed_attempt = 0
+                        Models.database.session.commit()
+                else:
+                    date = user.failed_login_time
+                    now  =datetime.now()
+                    span  = now - date
+                    # incremental of failed login within 20mins if detected.
+                    if span.seconds > 1200:
+                        user.failed_attempt = 0
+                        Models.database.session.commit()
 
             saved_password_hash = user.password_hash
             saved_password_salt = user.password_salt
