@@ -283,17 +283,18 @@ def current_password():
 
 
 if __name__ == '__main__':
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY = True
+    )
+    # app.config.update(
+    #     SESSION_COOKIE_SAMESITE='LAX'
+    # )
     if os.environ.get('IS_PROD',None):
         app.config.update(
             SESSION_COOKIE_HTTPONLY = True,
-            SESSION_COOKIE_SECURE = True,
-            REMEMBER_COOKIE_HTTPONLY = True,
+            SESSION_COOKIe_SECURE = True,
 
         )
         app.run()
     else:
-        app.config.update(
-            SESSION_COOKIE_HTTPONLY=True,
-            REMEMBER_COOKIE_HTTPONLY = True,
-        )
         app.run(debug=True,port=9999)
