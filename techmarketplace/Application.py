@@ -129,6 +129,7 @@ def home_page():
     print(session['created'])
     searchForm = SearchForm()
     print(request.headers.get('X-Forwarded-For', request.remote_addr))
+    twst = request.headers.get('X-Forwarded-For', request.remote_addr)
     print(paranoid._get_remote_addr())
     # print(test.session)
     # # for key in red.scan_iter():
@@ -137,7 +138,7 @@ def home_page():
     # print(socket.gethostbyname(d))
     # allowed_content_type =
     print(session)
-    response = make_response(render_template('index.html',searchForm=searchForm))
+    response = make_response(render_template('index.html',searchForm=searchForm,ip=twst))
     return response
 @app.route('/login')
 def login():
