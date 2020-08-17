@@ -293,6 +293,8 @@ if __name__ == '__main__':
         app.config.update(
             SESSION_COOKIE_HTTPONLY = True,
             SESSION_COOKIe_SECURE = True,
+            REMEMBER_COOKIE_HTTPONLY = True,
+            SESSION_COOKIE_SAMESITE = 'LAX'
 
         )
         app.run()
