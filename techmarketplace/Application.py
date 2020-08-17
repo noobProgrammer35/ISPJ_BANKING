@@ -288,7 +288,7 @@ if __name__ == '__main__':
             SESSION_COOKIE_HTTPONLY = True,
             SESSION_COOKIE_SECURE = True,
             REMEMBER_COOKIE_HTTPONLY = True,
-            SESSION_COOKIE_SAMESITE = 'Lax',
+
         )
         app.run()
     else:
