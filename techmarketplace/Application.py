@@ -186,9 +186,8 @@ def profile(username):
 @app.route('/profile/<username>/account')
 @verify_require
 def account(username):
-    print(username)
+
     searchForm = SearchForm()
-    print(current_user.account.accountid)
     if current_user.is_authenticated and current_user.username == username:
         print(current_user.account.credit_card)
         credit_card = current_user.account.credit_card
@@ -203,6 +202,7 @@ def account(username):
     else:
         log.logger.warning('An attempt to access to this page without authenticcation  was deny')
         abort(404)
+
 
 @app.route('/profile/<username>/account/update')
 @verify_require
@@ -292,9 +292,8 @@ if __name__ == '__main__':
     if os.environ.get('IS_PROD',None):
         app.config.update(
             SESSION_COOKIE_HTTPONLY = True,
-            SESSION_COOKIe_SECURE = True,
-            REMEMBER_COOKIE_HTTPONLY = True,
-            SESSION_COOKIE_SAMESITE = 'LAX'
+            SESSION_COOKIE_SECURE = True,
+            SESSION_COOKIE_SAMESITE='Lax'
 
         )
         app.run()
