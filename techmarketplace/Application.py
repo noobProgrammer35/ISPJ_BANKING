@@ -43,9 +43,10 @@ with app.app_context():
 # xss and data injection
 csp = {
         'default-src': ['\'self\'','https://fonts.googleapis.com/css'],
-        'img-src': '\'self\' data:',
+        'img-src': ['\'self\' data:','www.gstatic.com'],
         'style-src': '\'unsafe-inline\' \'self\'',
-        'script-src': '\'self\''
+        'script-src': ['\'self\'',' https://www.google.com/recaptcha/api.js',' https://www.gstatic.com/recaptcha/releases/TPiWapjoyMdQOtxLT9_b4n2W/recaptcha__en.js','nonce-{NONCE}'],
+        'frame-src':['www.google.com']
 
 }
 
@@ -150,7 +151,8 @@ def login():
         if resp.headers['Location'] == '/':
             return resp
     form = LoginForm()
-    return render_template('login.html',form=form,errors=errors,searchForm=searchForm)
+    if_prod = os.environ.get('IS_PROD')
+    return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
 
 @app.route('/register')
 def register():
@@ -284,7 +286,9 @@ def current_password():
 
 if __name__ == '__main__':
     app.config.update(
-        SESSION_COOKIE_HTTPONLY = True
+        SESSION_COOKIE_HTTPONLY = True,
+        SESSION_COOKIE_SAMESITE = 'SameSite'
+
     )
     # app.config.update(
     #     SESSION_COOKIE_SAMESITE='LAX'
@@ -293,7 +297,7 @@ if __name__ == '__main__':
         app.config.update(
             SESSION_COOKIE_HTTPONLY = True,
             SESSION_COOKIE_SECURE = True,
-            SESSION_COOKIE_SAMESITE='Lax'
+            SESSION_COOKIE_SAMESITE='SameSite'
 
         )
         app.run()

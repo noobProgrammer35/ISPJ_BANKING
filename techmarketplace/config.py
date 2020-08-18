@@ -35,5 +35,13 @@ def create_app():
     #cors
     app.config['CORS_HEADERS'] = 'Content-Type'
 
+    #recaptcha
+    if os.environ.get('IS_PROD',None):
+        app.config['RECAPTCHA_USE_SSL'] = False
+        app.config['RECAPTCHA_ENABLED'] = True
+        app.config['RECAPTCHA_PUBLIC_KEY'] = v.get_secret('RECAPTCHA-PUBLIC-KEY')
+        app.config['RECAPTCHA_PRIVATE_KEY'] = v.get_secret('RECAPTCHA-PRIVATE-KEY')
+        app.config['RECAPTCHA_OPTIONS'] = {'theme': 'black'}
+
     v.close_all_connections()
     return app
