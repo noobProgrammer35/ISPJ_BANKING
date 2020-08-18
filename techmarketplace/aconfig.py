@@ -1,5 +1,6 @@
 from flask import Flask
 from techmarketplace.redisession import RedisSessionInterface
+from techmarketplace import  Configuration
 from datetime import timedelta
 import redis
 import os
@@ -13,16 +14,9 @@ def create_app():
     app.config['SECRET_KEY'] = os.urandom(32)
     app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
     app.config['UPLOAD_FOLDER'] = 'static\\upload'
-    # email
-    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-    app.config['MAIL_PORT'] = 465
-    app.config['MAIL_USERNAME'] = 'piethonlee123@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'ASPJPYTHON123'
-    app.config['MAIL_USE_TLS'] = False
-    app.config['MAIL_USE_SSL'] = True
-    app.config['WTF_CSRF_TIME_LIMIT'] = 3600
+
     # sqlalchemy
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format('dbmsuser','Henry123')  # get from key vault
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format(Configuration.dbuser,Configuration.dbpw)  # get from key vault
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'

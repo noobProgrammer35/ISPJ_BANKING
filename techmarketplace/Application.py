@@ -77,7 +77,8 @@ def before_request():
     app.permanent_session_lifetime = datetime.timedelta(days=1)
     session.modified = True
     g.user = current_user
-    test.kvsession_extension.cleanup_sessions(app)
+    if not os.environ.get('IS_PROD'):
+        test.kvsession_extension.cleanup_sessions(app)
 
 @app.after_request
 def after_request(response):

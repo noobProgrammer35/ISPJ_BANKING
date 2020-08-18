@@ -99,6 +99,12 @@ def TwoFactorSetup():
         'Pragma': 'no-cache',
         'Expires': '0'}
 
+@app.route('/logout')
+def logout():
+    logout_user()
+    session.clear()
+    return redirect(url_for('login'))
+
 # @app.route('/a')
 # def admin_customer():
 #     return self.render('index.html')
