@@ -130,7 +130,10 @@ def register():
             confirm_url = url_for('users.confirm_email',token=token, _external=True)
             html = render_template('activate.html',confirm_url=confirm_url)
             subject = 'Please confirm your account'
-            utils.mailgun_send_messageV2(form.email.data,subject,html,'piethonlee1232gmail.com')
+            if os.environ.get('IS_PROD', None):
+                utils.mailgun_send_messageV2(current_user.email, subject, html, 'piethonlee123@gmail.com')
+            else:
+                utils.send_email(current_user.email, subject, html)
             log.logger.info('A new user has sucessfully registered with username of {0}'.format(form.username.data),extra={'custom_dimensions':{'Source':request.remote_addr}})
             resp = make_response(redirect(url_for('login')))
             if resp.headers['Location'] == '/login':
@@ -369,7 +372,10 @@ def resend():
     confirm_url = url_for('users.confirm_email', token=token, _external=True)
     html = render_template('activate.html', confirm_url=confirm_url)
     subject = 'Please confirm your account'
-    utils.mailgun_send_messageV2(current_user.email,subject,html,'piethonlee123@gmail.com')
+    if os.environ.get('IS_PROD',None):
+        utils.mailgun_send_messageV2(current_user.email,subject,html,'piethonlee123@gmail.com')
+    else:
+        utils.send_email(current_user.email,subject,html)
     flash('Email sent!')
     resp = make_response(redirect(url_for('users.unconfirmed')))
     print(resp.headers['Location'])
@@ -514,16 +520,19 @@ def support():
             log.logger.critical('Malicious character detected in support route')
             abort(404)
         try:
-            # mail = Mail(current_app)
-            # msg = Message(
-            #     subject = form.subject.data,
-            #     recipients=['piethonlee123@gmail.com'],
-            #     body=form.message.data,
-            #     sender=form.name.data,
-            #     reply_to=form.email.data
-            # )
-            # mail.send(msg)
-            utils.mailgun_send_messageV2('piethonlee123@gmail.com',form.subject.data,form.message.data,form.email.data)
+
+            if os.environ.get('IS_PROD', None):
+                utils.mailgun_send_messageV2('piethonlee123@gmail.com', form.subject.data, form.message.data,form.email.data)
+            else:
+                mail = Mail(current_app)
+                msg = Message(
+                    subject=form.subject.data,
+                    recipients=['piethonlee123@gmail.com'],
+                    body=form.message.data,
+                    sender=form.name.data,
+                    reply_to=form.email.data
+                )
+                mail.send(msg)
             flash('Email has sent to u')
             resp = make_response(redirect(request.url))
             if resp.headers['Location'] == '/support':

@@ -21,6 +21,12 @@ def create_app():
         app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
     app.config['UPLOAD_FOLDER'] = 'static\\upload'
     # email
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USERNAME'] = 'pycharming123@gmail.com'
+    app.config['MAIL_PASSWORD'] = v.get_secret('MAILPASSWORD')
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
     app.config['WTF_CSRF_TIME_LIMIT'] = 3600
     # sqlalchemy
     if os.environ.get('IS_PROD',None):
