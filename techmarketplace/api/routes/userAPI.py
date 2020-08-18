@@ -130,7 +130,7 @@ def register():
             confirm_url = url_for('users.confirm_email',token=token, _external=True)
             html = render_template('activate.html',confirm_url=confirm_url)
             subject = 'Please confirm your account'
-            utils.mailgun_send_message(form.email.data,subject,html)
+            utils.mailgun_send_messageV2(form.email.data,subject,html,'piethonlee1232gmail.com')
             log.logger.info('A new user has sucessfully registered with username of {0}'.format(form.username.data),extra={'custom_dimensions':{'Source':request.remote_addr}})
             resp = make_response(redirect(url_for('login')))
             if resp.headers['Location'] == '/login':
@@ -288,7 +288,6 @@ def login():
             else:
                 if user.failed_attempt >= 5:
                     flash('This account has been locked!')
-                    return redirect(url_for(login))
                 try:
                     print('irfan')
                     if user.failed_attempt < 5:
@@ -370,7 +369,7 @@ def resend():
     confirm_url = url_for('users.confirm_email', token=token, _external=True)
     html = render_template('activate.html', confirm_url=confirm_url)
     subject = 'Please confirm your account'
-    utils.mailgun_send_message(current_user.email,subject,html)
+    utils.mailgun_send_messageV2(current_user.email,subject,html,'piethonlee123@gmail.com')
     flash('Email sent!')
     resp = make_response(redirect(url_for('users.unconfirmed')))
     print(resp.headers['Location'])
