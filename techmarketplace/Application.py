@@ -23,6 +23,7 @@ import time
 
 
 app = config.create_app()
+
 # exporter = metrics_exporter.new_metrics_exporter(connection_string='InstrumentationKey=bec9fb90-0c7a-417a-809e-6c5417e4ba98')
 with app.app_context():
     from techmarketplace.api.routes import userAPI
@@ -54,7 +55,7 @@ csrf = CSRFProtect(app)
 #session protection
 paranoid = Paranoid(app)
 talisman = Talisman(app,content_security_policy=csp)
-cors = CORS(app,resource=r'/profile/')
+CORS(app, resources=r'/')
 paranoid.redirect_view = 'localhost:5000/register'
 
 
@@ -141,7 +142,9 @@ def home_page():
     print(session)
     response = make_response(render_template('index.html',searchForm=searchForm,ip=twst))
     return response
+
 @app.route('/login')
+@cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
 def login():
     print(session)
     searchForm = SearchForm()
@@ -162,6 +165,7 @@ def register():
     return render_template('register.html',form=form,searchForm=searchForm,if_prod=if_prod)
 
 @app.route('/logout')
+@cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
 @login_required
 def logout():
     logout_user()
