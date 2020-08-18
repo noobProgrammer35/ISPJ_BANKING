@@ -146,8 +146,7 @@ def register():
     else:
         print(form.username.data)
 
-    if_prod = os.environ.get('if_prod',None)
-    return render_template('register.html',form=form,searchForm=searchForm,if_prod=if_prod)
+    return render_template('register.html',form=form,searchForm=searchForm)
 
 
 

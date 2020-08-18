@@ -12,9 +12,6 @@ class RegisterForm(FlaskForm):
     email = StringField('Email',validators=[validators.DataRequired('Email is required'),validators.Email(message='Please enter valid email address')])
     password = PasswordField('Password',validators=[validators.DataRequired('Password is required'),validators.EqualTo('confirm',message='Password does not match'),validators.Length(min=8,message='Password minimum 8 characters'),validators.Regexp('^.*(?=.{8,10})(?=.*[a-zA-Z])(?=.*?[A-Z])(?=.*\d)[a-zA-Z0-9!@£$%^&*()_+={}?:~\[\]]+$',message='Password must contain at least 8 characters with uppercase,lowercase,symbol and numbers.')])
     confirm = PasswordField('Confirm Password')
-    if os.environ.get('IS_PROD', None):
-        recaptcha = RecaptchaField()
-
 
 
 class LoginForm(FlaskForm):
