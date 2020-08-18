@@ -45,7 +45,7 @@ csp = {
         'default-src': ['\'self\'','https://fonts.googleapis.com/css'],
         'img-src': ['\'self\' data:','www.gstatic.com'],
         'style-src': '\'unsafe-inline\' \'self\'',
-        'script-src': ['\'self\'',' https://www.google.com/recaptcha/api.js',' https://www.gstatic.com/recaptcha/releases/TPiWapjoyMdQOtxLT9_b4n2W/recaptcha__en.js','nonce-{NONCE}'],
+        'script-src': ['\'unsafe-inline\' \'self\'',' https://www.google.com/recaptcha/api.js',' https://www.gstatic.com/recaptcha/releases/TPiWapjoyMdQOtxLT9_b4n2W/recaptcha__en.js','nonce-{NONCE}'],
         'frame-src':['www.google.com']
 
 }
