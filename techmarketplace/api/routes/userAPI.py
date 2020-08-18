@@ -102,13 +102,13 @@ def register():
                 return resp
 
         if os.environ.get('IS_PROD',None):
-            if utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(), matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
+            if utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(), matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)') or utils.banned_characters(form.confirm.data.upper(),matches='(USERNAME)'):
                 flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
                 resp = make_response(redirect(url_for('register')))
                 if resp.headers['Location'] == '/register':
                     return resp
         else:
-            if utils.read_common_password(form.confirm.data) or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
+            if utils.read_common_password(form.confirm.data) or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)') or utils.banned_characters(form.confirm.data.upper(),matches='(USERNAME)'):
                 flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
                 resp = make_response(redirect(url_for('register')))
                 if resp.headers['Location'] == '/register':
@@ -287,7 +287,8 @@ def login():
                     abort(404)
             else:
                 if user.failed_attempt >= 5:
-                    abort(404)
+                    flash('This account has been locked!')
+                    return redirect(url_for(login))
                 try:
                     print('irfan')
                     if user.failed_attempt < 5:

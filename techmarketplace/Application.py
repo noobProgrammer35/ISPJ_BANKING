@@ -55,7 +55,6 @@ csrf = CSRFProtect(app)
 #session protection
 paranoid = Paranoid(app)
 talisman = Talisman(app,content_security_policy=csp)
-CORS(app, resources=r'/')
 paranoid.redirect_view = 'localhost:5000/register'
 
 

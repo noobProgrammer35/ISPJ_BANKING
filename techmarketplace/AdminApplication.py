@@ -55,7 +55,7 @@ def before_request():
                 return resp
     # print(psutil.net_io_counters())
     session.permanent = True
-    app.permanent_session_lifetime = datetime.timedelta(minutes=2)
+    app.permanent_session_lifetime = datetime.timedelta(minutes=15)
     session.modified = True
     g.user = current_user
 
