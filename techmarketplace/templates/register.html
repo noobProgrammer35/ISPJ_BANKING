@@ -104,6 +104,14 @@
                                 {% endfor %}
                             <br>
 
+                                                    {% if if_prod  %}
+                                       {{ form.recaptcha }}
+                         {% for error in form.recaptcha.errors %}
+                                    <li style ='color:red;list-style-type:none;'>{{ error }}</li>
+                                {% endfor %}
+                        {% endif %}
+
+
                             <input type="submit" value ="Register" class="btn btn-outline-primary">
 
 

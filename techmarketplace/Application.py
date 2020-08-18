@@ -158,7 +158,8 @@ def login():
 def register():
     searchForm = SearchForm()
     form = RegisterForm()
-    return render_template('register.html',form=form,searchForm=searchForm)
+    if_prod = os.environ.get('IS_PROD')
+    return render_template('register.html',form=form,searchForm=searchForm,if_prod=if_prod)
 
 @app.route('/logout')
 @login_required
