@@ -19,7 +19,7 @@ class LoginForm(FlaskForm):
     username = StringField('Username',validators=[validators.DataRequired('Username is required!')])
     password = PasswordField('Password',validators=[validators.DataRequired('Password is required')])
     if os.environ.get('IS_PROD',None):
-        recaptcha = RecaptchaField(validators=[validators.DataRequired('This is required!')])
+        recaptcha = RecaptchaField()
 
 
 class AdminLoginForm(FlaskForm):
