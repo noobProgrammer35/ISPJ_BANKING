@@ -158,6 +158,7 @@ def login():
     return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
 
 @app.route('/register')
+@cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
 def register():
     searchForm = SearchForm()
     form = RegisterForm()
