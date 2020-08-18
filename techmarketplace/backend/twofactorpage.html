@@ -1,14 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE HTML>
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <META HTTP-EQUIV="REFRESH" CONTENT="csrf_timeout_in_seconds">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<title>Log In</title>
+
+    <link rel="stylesheet" href="{{ url_for('static',filename = 'css/admin.css') }}">
+
+
 </head>
+
 <body>
-    <form action="{{ url_for('admins.authenticate') }}" method="post" >
+
+<nav><a href="#" class="focus">Log In</a></nav>
+
+
+	  <form action="{{ url_for('admins.authenticate') }}" method="post" >
+          <h2>Admin Login</h2>
         {{ form.hidden_tag() }}
-        {{ form.token }}
-        <input type="submit">
-    </form>
+        {{ form.token(placeholder='Enter OTP') }}
+        <input type="submit" class = 'button'>
+
+      </form>
+
 </body>
 </html>

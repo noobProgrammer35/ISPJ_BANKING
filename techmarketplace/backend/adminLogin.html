@@ -1,16 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE HTML>
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <META HTTP-EQUIV="REFRESH" CONTENT="csrf_timeout_in_seconds">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<title>Log In</title>
+
+    <link rel="stylesheet" href="{{ url_for('static',filename = 'css/admin.css') }}">
+
+
 </head>
+
 <body>
-<form action = '/' method="post">
-    {{ form.hidden_tag() }}
-    {{ form.username }}
-    {{form.password }}
-    <input type="submit">
+
+<nav><a href="#" class="focus">Log In</a></nav>
+
+<form action="/" method="post">
+
+	<h2>Admin Login</h2>
+
+	 {{ form.hidden_tag() }}
+    {{ form.username(_class='text-field', placeholder='Username') }}
+    <br>
+    {{form.password(_class='text-field', placeholder='Password') }}
+
+  <input type="Submit"  class="button" value="Log In" />
 
 </form>
+
 </body>
-</html>
