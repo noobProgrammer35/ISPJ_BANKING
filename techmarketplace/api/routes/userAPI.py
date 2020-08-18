@@ -308,8 +308,9 @@ def login():
     else:
 
         print(form.errors)
+    if_prod = os.environ.get('IS_PROD',None)
 
-    return render_template('login.html',form=form,errors=errors,searchForm=searchForm)
+    return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
 
 
 
