@@ -9,8 +9,8 @@ from sqlalchemy import create_engine, MetaData
 from simplekv.decorator import PrefixDecorator
 
 if os.environ.get('IS_PROD',None):
-    store = RedisStore(redis.StrictRedis(host='redis-12106.c56.east-us.azure.cloud.redislabs.com', port=12106, db=0,
-                       password='RZ9IoOQMPab4XGaLee7NUAW6vccBceAU'))
+    store = RedisStore(redis.StrictRedis(host=os.environ.get('redis_host',None), port=os.environ.get('redis_port',None), db=os.environ.get('db',None),
+                       password=os.environ.get('redis_password')))
     prefix_store = PrefixDecorator('session_',store)
     s = KVSessionExtension(prefix_store,current_app)
 else:
