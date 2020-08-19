@@ -162,8 +162,7 @@ def login():
 def register():
     searchForm = SearchForm()
     form = RegisterForm()
-    if_prod = os.environ.get('IS_PROD')
-    return render_template('register.html',form=form,searchForm=searchForm,if_prod=if_prod)
+    return render_template('register.html',form=form,searchForm=searchForm)
 
 @app.route('/logout')
 @cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
