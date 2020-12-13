@@ -14,8 +14,8 @@ def create_app():
     if os.environ.get('IS_PROD',None):
         secret_key =  os.urandom(32)     #v.get_secret('SECRET-KEY')
         security_password_salt  =  os.urandom(16)   #v.get_secret(('security-password-salt'))
-        app.config['SECRET_KEY'] = secret_key
-        app.config['SECURITY_PASSWORD_SALT'] = security_password_salt
+        app.config['SECRET_KEY'] = os.urandom(32)
+        app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
     else:
         app.config['SECRET_KEY'] = os.urandom(32)
         app.config['SECURITY_PASSWORD_SALT'] = os.urandom(16)
