@@ -45,8 +45,8 @@ def create_app():
     if os.environ.get('IS_PROD',None):
         app.config['RECAPTCHA_USE_SSL'] = False
         app.config['RECAPTCHA_ENABLED'] = True
-        #app.config['RECAPTCHA_PUBLIC_KEY'] = v.get_secret('RECAPTCHA-PUBLIC-KEY')
-        #app.config['RECAPTCHA_PRIVATE_KEY'] = v.get_secret('RECAPTCHA-PRIVATE-KEY')
+        app.config['RECAPTCHA_PUBLIC_KEY'] =  os.environ.get('RECAPTCHA_SITE_KEY')      #v.get_secret('RECAPTCHA-PUBLIC-KEY')
+        app.config['RECAPTCHA_PRIVATE_KEY'] = os.environ.get('RECAPTCHA_SECRET_KEY')      #v.get_secret('RECAPTCHA-PRIVATE-KEY')
         app.config['RECAPTCHA_OPTIONS'] = {'theme': 'black'}
 
     v.close_all_connections()
