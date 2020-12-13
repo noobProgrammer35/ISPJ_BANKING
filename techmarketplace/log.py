@@ -23,7 +23,7 @@ if not os.environ.get('IS_PROD',None):
 else:
     v = vault.Vault()
     logger.addHandler(AzureLogHandler(
-        connection_string=v.get_secret('AzureLoggingConnectionString')
+        connection_string=os.environ.get('InstrumentKey')#v.get_secret('AzureLoggingConnectionString')
     ))
     v.close_all_connections()
 
