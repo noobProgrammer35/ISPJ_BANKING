@@ -67,7 +67,7 @@ def send_email(message):
     smtpObj.ehlo()
     smtpObj.starttls()
     smtpObj.ehlo()
-    smtpObj.login('pycharming123', 'ASPJPYTHON123')
+    smtpObj.login('pycharming123@gmail.com', 'ASPJPYTHON123')
     smtpObj.sendmail('piethonlee123@gmail.com','piethonlee123@gmail.com',message.as_string())
 
 run_command()
