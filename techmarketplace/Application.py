@@ -118,7 +118,7 @@ def verify_require(f):
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
-    session.regenerate()
+    # session.regenerate()
     return '<h3>Sorry server encountered an error. Please try again by refreshing your browser</h3>'
 
 
