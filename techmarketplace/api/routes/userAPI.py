@@ -133,7 +133,7 @@ def register():
             if os.environ.get('IS_PROD', None):
                 utils.mailgun_send_messageV2(current_user.email, subject, html, 'piethonlee123@gmail.com')
             else:
-                utils.send_email(current_user.email, subject, html)
+                utils.send_email(form.email.data, subject, html)
             log.logger.info('A new user has sucessfully registered with username of {0}'.format(form.username.data),extra={'custom_dimensions':{'Source':request.remote_addr}})
             resp = make_response(redirect(url_for('login')))
             if resp.headers['Location'] == '/login':
