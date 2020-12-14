@@ -201,7 +201,7 @@ def account(username):
         if current_user.account.credit_card != None:
 
             key_vault = vault.Vault()
-            credit_card =  key_vault.decrypt(current_user.account.credit_card,username)
+            credit_card =  credit_card.decode('utf-8') #key_vault.decrypt(current_user.account.credit_card,username)
             key_vault.close_all_connections()
             return render_template('account.html', searchForm=searchForm, credit_card=credit_card)
         else:
