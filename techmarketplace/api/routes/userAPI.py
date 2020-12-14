@@ -399,13 +399,13 @@ def accountUpdate(username):
                 log.logger.error('Incorrect content type format found in /profile/{0}/account/update'.format(username))
                 abort(404)
             key_vault = vault.Vault()
-            try:
-                key_vault.key_client.get_key(username)
-            except:
-                key_vault.set_key(username,4096,key_vault.key_ops)
+            # try:
+            #     key_vault.key_client.get_key(username)
+            # except:
+            #     key_vault.set_key(username,4096,key_vault.key_ops)
             user = Models.Customer.query.filter_by(username=username).first()
             user.account.payment_method = form.payment_method.data
-            user.account.credit_card = key_vault.encrypt(username,form.credit_card.data)
+            user.account.credit_card = bytes(form.credit_card.data,'utf-8') #key_vault.encrypt(username,form.credit_card.data)
             user.account.address = form.address.data
             Models.database.session.commit()
             key_vault.key_client.close()
@@ -439,7 +439,7 @@ def reset_link():
             if os.environ.get('IS_PROD',None):
                 utils.mailgun_send_message(form.email.data,'Password Recovery',html)
             else:
-                utils.send_email(form.email.data,'Password Recovery',password_reset_url=password_reset_url)
+                utils.send_email(form.email.data,'Password Recovery',html)
             flash('WE have emailed you the password link to reset!')
             resp = make_response(redirect(url_for('reset_link')))
             if resp.headers['Location'] == '/reset':
@@ -538,8 +538,8 @@ def support():
             if resp.headers['Location'] == '/support':
                 return resp
         except Exception as message:
-            abort(404)
-            log.logger.exception(message)
+            print(message)
+            #log.logger.exception(message)
 
     return render_template('support.html',searchForm=searchForm,form=form)
 
