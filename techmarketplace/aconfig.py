@@ -26,5 +26,5 @@ def create_app():
     app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
     # flask-session
     app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_REDIS'] = redis.from_url('redis://:RZ9IoOQMPab4XGaLee7NUAW6vccBceAU@redis-12106.c56.east-us.azure.cloud.redislabs.com:12106/0')
+    app.config['SESSION_REDIS'] = redis.from_url(Configuration.redis_url)
     return app
