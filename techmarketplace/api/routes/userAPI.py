@@ -19,13 +19,7 @@ import requests
 
 users_blueprint = Blueprint('users',__name__,template_folder='templates')
 
-current_app.config.update({'RECAPTCHA_ENABLED': True,
-                   'RECAPTCHA_SITE_KEY':
-                       '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
-                   'RECAPTCHA_SECRET_KEY':
-                       '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'})
 
-recaptcha = ReCaptcha(app=current_app)
 
 
 
@@ -107,11 +101,18 @@ def register():
             if resp.headers['Location'] == '/register':
                 return resp
 
-        if utils.read_common_password(form.confirm.data) or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
-            flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
-            resp = make_response(redirect(url_for('register')))
-            if resp.headers['Location'] == '/register':
-                return resp
+        if os.environ.get('IS_PROD',None):
+            if utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(), matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
+                flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
+                resp = make_response(redirect(url_for('register')))
+                if resp.headers['Location'] == '/register':
+                    return resp
+        else:
+            if utils.read_common_password(form.confirm.data) or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(PASSWORD)') or utils.banned_characters(form.confirm.data.upper(),matches='(ADMIN)'):
+                flash('This password is either too common and subsceptiple to hackers or password contain words like \"username\" or \"password\" or \"admin\"')
+                resp = make_response(redirect(url_for('register')))
+                if resp.headers['Location'] == '/register':
+                    return resp
 
         username = Models.Customer.query.filter_by(username=str(escape(form.username.data))).first()
         email = Models.Customer.query.filter_by(email=str(escape(form.email.data))).first()
@@ -129,7 +130,7 @@ def register():
             confirm_url = url_for('users.confirm_email',token=token, _external=True)
             html = render_template('activate.html',confirm_url=confirm_url)
             subject = 'Please confirm your account'
-            utils.send_email(form.email.data, subject, html)
+            utils.mailgun_send_message(form.email.data,subject,html)
             log.logger.info('A new user has sucessfully registered with username of {0}'.format(form.username.data),extra={'custom_dimensions':{'Source':request.remote_addr}})
             resp = make_response(redirect(url_for('login')))
             if resp.headers['Location'] == '/login':
@@ -144,7 +145,6 @@ def register():
             return redirect(url_for('register'))
     else:
         print(form.username.data)
-            # ban ip addr for next step
     return render_template('register.html',form=form,searchForm=searchForm)
 
 
@@ -214,7 +214,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         if utils.banned_characters(form.username.data) or utils.banned_characters(form.password.data):
-            # log.logger.critical('Malicious characters such as \'\"<>#/ detected')
+            log.logger.critical('Malicious characters such as \'\"<>#/ detected')
             print('d')
             errors = 'Invalid username or password'
             abort(404)
@@ -354,7 +354,7 @@ def resend():
     confirm_url = url_for('users.confirm_email', token=token, _external=True)
     html = render_template('activate.html', confirm_url=confirm_url)
     subject = 'Please confirm your account'
-    utils.send_email(current_user.email,subject,html)
+    utils.mailgun_send_message(current_user.email,subject,html)
     flash('Email sent!')
     resp = make_response(redirect(url_for('users.unconfirmed')))
     print(resp.headers['Location'])
@@ -371,7 +371,7 @@ def accountUpdate(username):
         searchForm = SearchForm()
         if form.validate_on_submit():
             if utils.banned_characters(form.credit_card.data):
-                # log.logger.critical('Malicious Character detected in /profile/{0}/account/update'.format(username))
+                log.logger.critical('Malicious Character detected in /profile/{0}/account/update'.format(username))
                 logout_user()
                 abort(404)
             if request.content_type != 'application/x-www-form-urlencoded':
@@ -438,6 +438,7 @@ def reset_password_link(token):
         abort(404)
     searchForm = SearchForm()
     email = utils.confirmation_token(token)
+    print(email)
     if not email:
         flash('This link has expired!')
         resp = make_response(redirect(url_for('login')))
@@ -472,9 +473,9 @@ def reset_password_link(token):
 def search():
     searchForm = SearchForm()
     if searchForm.validate_on_submit():
-        # if utils.banned_characters(searchForm.search.data):
-        #     # log.logger.critical('Malicious character detected in search')
-        #     abort(404)
+        if utils.banned_characters(searchForm.search.data):
+            log.logger.critical('Malicious character detected in search')
+            abort(404)
         if request.content_type != r'application/x-www-form-urlencoded':
             print('dd')
             abort(404)
@@ -495,20 +496,23 @@ def support():
             log.logger.error('Incorrect request content format at /support route')
             abort(404)
         if utils.banned_characters(form.subject.data) or utils.banned_characters(form.message.data,matches='[/\\<>%=]') or utils.banned_characters(form.name.data) or utils.banned_characters(form.email.data):
-            #log.logger.critical('Malicious character detected in support route')
+            log.logger.critical('Malicious character detected in support route')
             abort(404)
         try:
-            mail = Mail(current_app)
-            msg = Message(
-                subject = form.subject.data,
-                recipients=['piethonlee123@gmail.com'],
-                body=form.message.data,
-                sender=form.name.data,
-                reply_to=form.email.data
-            )
-            mail.send(msg)
+            # mail = Mail(current_app)
+            # msg = Message(
+            #     subject = form.subject.data,
+            #     recipients=['piethonlee123@gmail.com'],
+            #     body=form.message.data,
+            #     sender=form.name.data,
+            #     reply_to=form.email.data
+            # )
+            # mail.send(msg)
+            utils.mailgun_send_messageV2('piethonlee123@gmail.com',form.subject.data,form.message.data,form.email.data)
             flash('Email has sent to u')
-            redirect(request.url)
+            resp = make_response(redirect(request.url))
+            if resp.headers['Location'] == '/support':
+                return resp
         except Exception as message:
             abort(404)
             log.logger.exception(message)
@@ -526,8 +530,8 @@ def current():
                 log.logger.error('Incorrect request content format at /current route')
                 abort(404)
             if utils.banned_characters(form.currentPassword.data):
-                # log.logger.critical('Malicious character detected in support route')
-                abort(404)
+                 log.logger.critical('Malicious character detected in support route. An attempt to inject is possible')
+                 abort(404)
             user = Models.Customer.query.filter_by(username=current_user.username).first()
             saved_hash= user.password_hash
             password_hashed = utils.generate_hash(form.currentPassword.data,user.password_salt)

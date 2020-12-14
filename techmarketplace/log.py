@@ -1,6 +1,6 @@
-# bec9fb90-0c7a-417a-809e-6c5417e4ba98
 import logging
 import os
+from techmarketplace import vault
 from flask import request
 from selenium import  webdriver
 import datetime
@@ -21,9 +21,11 @@ if not os.environ.get('IS_PROD',None):
         connection_string=Configuration.InstrumentKey
     ))
 else:
+    v = vault.Vault()
     logger.addHandler(AzureLogHandler(
-        connection_string=os.environ.get('InstrumentKey')
+        connection_string=v.get_secret('AzureLoggingConnectionString')
     ))
+    v.close_all_connections()
 
 
 # print(logger)

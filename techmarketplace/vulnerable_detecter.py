@@ -1,4 +1,5 @@
 from email.mime.text import MIMEText
+from techmarketplace import Configuration
 import subprocess
 import importlib
 import vulners
@@ -9,7 +10,7 @@ import smtplib
 
 
 def run_command():
-    vulners_api = vulners.Vulners(api_key="KDSGZ618GWT2F5JO1EEU4R5K87GR9987FQQZDNQF0K0RW3VK5DJ7OUI305S7PQME")
+    vulners_api = vulners.Vulners(Configuration.vulners_api)
     # generate current verison of package
     try:
         torch_loader = importlib.import_module('pipreqs')
@@ -19,7 +20,7 @@ def run_command():
 
     vul_dict = {}
     if torch_loader:
-        subprocess.call('pipreqs --force')
+        subprocess.call('pipreqs')
 
     test = []
     count = 0
