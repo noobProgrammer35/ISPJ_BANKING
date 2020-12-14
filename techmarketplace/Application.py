@@ -20,12 +20,10 @@ import redis
 import pickle
 import time
 
-red = redis.Redis(host='redis-12106.c56.east-us.azure.cloud.redislabs.com', port=12106, db=0,
-                   password='RZ9IoOQMPab4XGaLee7NUAW6vccBceAU')
-
 
 
 app = config.create_app()
+
 # exporter = metrics_exporter.new_metrics_exporter(connection_string='InstrumentationKey=bec9fb90-0c7a-417a-809e-6c5417e4ba98')
 with app.app_context():
     from techmarketplace.api.routes import userAPI
@@ -46,9 +44,10 @@ with app.app_context():
 # xss and data injection
 csp = {
         'default-src': ['\'self\'','https://fonts.googleapis.com/css'],
-        'img-src': '\'self\' data:',
+        'img-src': ['\'self\' data:','www.gstatic.com'],
         'style-src': '\'unsafe-inline\' \'self\'',
-        'script-src': '\'self\''
+        'script-src': ['\'unsafe-inline\' \'self\'',' https://www.google.com/recaptcha/api.js',' https://www.gstatic.com/recaptcha/releases/TPiWapjoyMdQOtxLT9_b4n2W/recaptcha__en.js','nonce-{NONCE}'],
+        'frame-src':['www.google.com']
 
 }
 
@@ -56,7 +55,6 @@ csrf = CSRFProtect(app)
 #session protection
 paranoid = Paranoid(app)
 talisman = Talisman(app,content_security_policy=csp)
-cors = CORS(app,resource=r'/profile/')
 paranoid.redirect_view = 'localhost:5000/register'
 
 
@@ -68,7 +66,7 @@ def before_request():
         last_login = session['last_login']
         time = datetime.datetime.now() - last_login
         print(time.seconds)
-        if time.seconds > 1800:  # 30minutes
+        if time.seconds > 900:  # 30minutes
             logout_user()
             session.destroy()
             resp = make_response(redirect(url_for('home_page')))
@@ -76,10 +74,11 @@ def before_request():
                 return resp
     # print(psutil.net_io_counters())
     session.permanent = True
-    app.permanent_session_lifetime = datetime.timedelta(minutes=15)
+    app.permanent_session_lifetime = datetime.timedelta(days=1)
     session.modified = True
     g.user = current_user
-    test.kvsession_extension.cleanup_sessions(app)
+    if not os.environ.get('IS_PROD'):
+        test.kvsession_extension.cleanup_sessions(app)
 
 @app.after_request
 def after_request(response):
@@ -117,10 +116,10 @@ def verify_require(f):
     return wrap
 
 
-@app.errorhandler(CSRFError)
-def handle_csrf_error(e):
-    session.regenerate()
-    return '<h3>Sorry server encountered an error. Please try again by refreshing your browser</h3>'
+# @app.errorhandler(CSRFError)
+# def handle_csrf_error(e):
+#     # session.regenerate()
+#     return '<h3>Sorry server encountered an error. Please try again by refreshing your browser</h3>'
 
 
 @app.route('/')
@@ -132,6 +131,7 @@ def home_page():
     print(session['created'])
     searchForm = SearchForm()
     print(request.headers.get('X-Forwarded-For', request.remote_addr))
+    twst = request.headers.get('X-Forwarded-For', request.remote_addr)
     print(paranoid._get_remote_addr())
     # print(test.session)
     # # for key in red.scan_iter():
@@ -140,9 +140,11 @@ def home_page():
     # print(socket.gethostbyname(d))
     # allowed_content_type =
     print(session)
-    response = make_response(render_template('index.html',searchForm=searchForm))
+    response = make_response(render_template('index.html',searchForm=searchForm,ip=twst))
     return response
+
 @app.route('/login')
+@cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
 def login():
     print(session)
     searchForm = SearchForm()
@@ -152,15 +154,18 @@ def login():
         if resp.headers['Location'] == '/':
             return resp
     form = LoginForm()
-    return render_template('login.html',form=form,errors=errors,searchForm=searchForm)
+    if_prod = os.environ.get('IS_PROD')
+    return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
 
 @app.route('/register')
+@cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
 def register():
     searchForm = SearchForm()
     form = RegisterForm()
     return render_template('register.html',form=form,searchForm=searchForm)
 
 @app.route('/logout')
+@cross_origin(allow_headers=['Content-Type'], origins=['https://www.google.com/'], supports_credentials=True)
 @login_required
 def logout():
     logout_user()
@@ -188,16 +193,15 @@ def profile(username):
 @app.route('/profile/<username>/account')
 @verify_require
 def account(username):
-    print(username)
+
     searchForm = SearchForm()
-    print(current_user.account.accountid)
     if current_user.is_authenticated and current_user.username == username:
         print(current_user.account.credit_card)
         credit_card = current_user.account.credit_card
         if current_user.account.credit_card != None:
 
             key_vault = vault.Vault()
-            credit_card =  key_vault.decrypt(current_user.account.credit_card,username)
+            credit_card =  credit_card.decode('utf-8') #key_vault.decrypt(current_user.account.credit_card,username)
             key_vault.close_all_connections()
             return render_template('account.html', searchForm=searchForm, credit_card=credit_card)
         else:
@@ -205,6 +209,7 @@ def account(username):
     else:
         log.logger.warning('An attempt to access to this page without authenticcation  was deny')
         abort(404)
+
 
 @app.route('/profile/<username>/account/update')
 @verify_require
@@ -286,7 +291,9 @@ def current_password():
 
 if __name__ == '__main__':
     app.config.update(
-        SESSION_COOKIE_HTTPONLY = True
+        SESSION_COOKIE_HTTPONLY = True,
+        SESSION_COOKIE_SAMESITE = 'SameSite'
+
     )
     # app.config.update(
     #     SESSION_COOKIE_SAMESITE='LAX'
@@ -294,7 +301,8 @@ if __name__ == '__main__':
     if os.environ.get('IS_PROD',None):
         app.config.update(
             SESSION_COOKIE_HTTPONLY = True,
-            SESSION_COOKIe_SECURE = True,
+            SESSION_COOKIE_SECURE = True,
+            SESSION_COOKIE_SAMESITE='SameSite'
 
         )
         app.run()

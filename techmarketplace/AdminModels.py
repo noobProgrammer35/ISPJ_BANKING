@@ -15,11 +15,6 @@ import pyotp
 
 
 
-# current_app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://dbmsuser:Henry123@localhost/mydb'
-# current_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# current_app.config['SQLALCHEMY_ECHO'] = True
-# current_app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
-
 database = SQLAlchemy(current_app)
 login = LoginManager(current_app)
 login.session_protection = None
@@ -82,6 +77,8 @@ class Customer(database.Model):
     email = database.Column(database.String(45),unique=True)
     password_hash = database.Column(database.Text())
     password_salt = database.Column(database.Text())
+    failed_attempt = database.Column(database.Integer())
+    failed_login_time = database.Column(database.TIMESTAMP())
     verified = database.Column(database.Boolean)
     account = database.relationship('Account',uselist=False,backref='account',lazy=True)
 

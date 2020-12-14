@@ -4,31 +4,10 @@ from azure.keyvault.keys import KeyClient
 from azure.keyvault.keys.crypto import CryptographyClient,EncryptionAlgorithm
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
 import base64
-
-
 if not os.environ.get('IS_PROD',None):
     from techmarketplace import Configuration
 
 
-# keyVaultName = os.environ["KEY_VAULT_NAME"]
-# KVUri = "https://" + keyVaultName + ".vault.azure.net"
-# _credential = ClientSecretCredential(
-#     tenant_id="db539596-3662-417a-8a40-f760781d1cf8",
-#     client_id="ee4319a3-b418-413d-a9e9-d3b23e2e17c5",
-#     client_secret="33kU2I7F~a5TSDP-_Z9NZ1tR5DVlsgpK-W",
-# )
-# client = SecretClient(vault_url=KVUri, credential=_credential)
-# print(client.get_secret('dbpw').value)
-# key_ops = ["encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey"]
-# key_client = KeyClient(vault_url=KVUri,credential=_credential)
-# print(key_client.get_key('test').name)
-# key = key_client.create_key('test',"RSA",size=2048,key_operations=key_ops)
-# crypto_client = CryptographyClient(key_client.get_key('test'),credential=_credential)
-# result = crypto_client.encrypt(EncryptionAlgorithm.rsa_oaep,b'FUCK U')
-# print(result)
-# print(result.algorithm)
-# print(result.ciphertext)
-# print(result.key_id)
 class Vault:
     def __init__(self):
 
@@ -78,8 +57,7 @@ class Vault:
 
 #
 # #
-
-#Aspj-Vault
+#test code
 # vault = Vault()
 # print(vault.get_secret('dbuser'))
 # vault.set_key('test',2048,vault.key_ops)

@@ -55,7 +55,7 @@ def before_request():
                 return resp
     # print(psutil.net_io_counters())
     session.permanent = True
-    app.permanent_session_lifetime = datetime.timedelta(minutes=2)
+    app.permanent_session_lifetime = datetime.timedelta(minutes=15)
     session.modified = True
     g.user = current_user
 
@@ -98,6 +98,12 @@ def TwoFactorSetup():
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'}
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    session.clear()
+    return redirect(url_for('login'))
 
 # @app.route('/a')
 # def admin_customer():

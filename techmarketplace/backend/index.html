@@ -1,5 +1,6 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-<h1>test</h1>
+<h1>Welcome {{ current_user.username }}!</h1>
+<a href = '/logout'>Logout</a>
 {% endblock body %}
