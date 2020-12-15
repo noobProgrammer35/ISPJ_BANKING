@@ -286,12 +286,27 @@ def current_password():
 
 
 
-@app.route('/transfer')
+@app.route('/transfer/<username>')
 @login_required
 @verify_require
-def transfer():
+def transfer(username):
     searchForm = SearchForm()
-    return render_template('Transfer.html',searchForm=searchForm)
+    if current_user.username == username:
+        return render_template('Transfer.html',searchForm=searchForm)
+    else:
+        abort(404)
+
+
+
+@app.route('/E_Statement/<username>')
+@login_required
+@verify_require
+def E_Statement(username):
+    searchForm = SearchForm()
+    if current_user.username == username:
+        return render_template('E_Statement.html', searchForm=searchForm)
+    else:
+        abort(404)
 
 if __name__ == '__main__':
     app.config.update(

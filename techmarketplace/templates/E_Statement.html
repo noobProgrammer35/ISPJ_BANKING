@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}NTechBanking - E-Statement{% endblock %}
+{% block content %}
+  <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8">
+                    <div class="regular-page-content-wrapper section-padding-80">
+                         <h2>E-Statement</h2>
+                            <p>Select date to view your E-Statement.</p>
+                        <div class="regular-page-text">
+
+                            <div class="input-group flex-nowrap">
+                              <div class="input-group-prepend">
+                                <span class="input-group-text" id="addon-wrapping">Dates</span>
+                              </div>
+
+                                    <input type= 'text' class = 'form-control' placeholder='Year'>
+                                    <input type= 'text' class ='form-control' placeholder='Month'>
+                                    <input type ='submit' class ='btn btn-outline-primary' value ='Confirm'>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+  </div>
+
+{% endblock %}
