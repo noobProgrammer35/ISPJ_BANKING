@@ -285,6 +285,14 @@ def current_password():
         abort(404)
 
 
+
+@app.route('/transfer')
+@login_required
+@verify_require
+def transfer():
+    searchForm = SearchForm()
+    return render_template('Transfer.html',searchForm=searchForm)
+
 if __name__ == '__main__':
     app.config.update(
         SESSION_COOKIE_HTTPONLY = True,
