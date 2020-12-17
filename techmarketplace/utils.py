@@ -4,8 +4,9 @@ from flask import current_app
 from flask_mail import Message,Mail
 from math import radians, cos, sin, asin, sqrt
 from twilio.rest import Client, TwilioException
-from techmarketplace import Configuration
 import os
+if not os.environ.get('IS_PROD',None):
+    from techmarketplace import Configuration
 import requests
 import re
 import socket

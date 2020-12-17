@@ -5,10 +5,12 @@ from flask_mail import Mail,Message
 from flask_login import current_user,login_user,logout_user
 from itsdangerous import URLSafeTimedSerializer
 from mysql import connector
-from techmarketplace import utils,Models,vault,log,Configuration
+import os
+from techmarketplace import utils,Models,vault,log
+if not os.environ.get('IS_PROD',True):
+    from techmarketplace import Configuration
 from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm
 from werkzeug.datastructures import Headers
-import os
 import redis
 from uuid import uuid4
 from datetime import timedelta, datetime
