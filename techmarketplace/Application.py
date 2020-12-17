@@ -1,7 +1,7 @@
 from flask import jsonify,request,flash,Flask,render_template,redirect,session,url_for,Response,abort,json,escape,g,make_response
 from flask_wtf.csrf import CSRFProtect,CSRFError
 from flask_sqlalchemy import *
-from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,SearchForm,SupportForm,ChangePasswordForm
+from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,SearchForm,SupportForm,ChangePasswordForm,Confirm2faForm
 from techmarketplace import utils,config,redisession
 from flask_login import current_user,logout_user
 from flask_paranoid import Paranoid
@@ -68,6 +68,15 @@ def before_request():
             resp = make_response(redirect(url_for('home_page')))
             if resp.headers['Location'] == '/':
                 return resp
+    elif session.get('otp_session'):
+        otp_session = session['otp_session']
+        interval = datetime.datetime.now() - otp_session
+        if interval.seconds > 60:
+            session.destroy()
+            flash('Enter OTP within 60 seconds')
+            resp =  make_response(redirect(url_for('login')))
+            if resp.headers['Location'] == '/login':
+                return resp
     # print(psutil.net_io_counters())
     session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(days=1)
@@ -122,6 +131,8 @@ def verify_require(f):
 @verify_require
 @cross_origin(allow_headers=['Content-Type'],origins=['https://www.google.com'],support_credentials=True)
 def home_page():
+    print(current_user.is_authenticated)
+    print(session.get('username'))
     if 'created' not in session:
         session['created'] = datetime.datetime.now()
     print(session['created'])
@@ -148,6 +159,10 @@ def login():
     if current_user.is_authenticated:
         resp = make_response(redirect(url_for('home_page')))
         if resp.headers['Location'] == '/':
+            return resp
+    elif session.get('username'):
+        resp = make_response(redirect(url_for('verify_token')))
+        if resp.headers['Location'] == '/VerifyToken':
             return resp
     form = LoginForm()
     if_prod = os.environ.get('IS_PROD')
@@ -307,6 +322,19 @@ def E_Statement(username):
         return render_template('E_Statement.html', searchForm=searchForm)
     else:
         abort(404)
+
+@app.route('/VerifyToken')
+def verify_token():
+    searchForm = SearchForm()
+    if session.get('username'):
+        confirm2faForm = Confirm2faForm()
+        return render_template('VerifyToken.html',searchForm=searchForm,form=confirm2faForm),200 ,{
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'}
+    else:
+        abort(404)
+
 
 if __name__ == '__main__':
     app.config.update(
