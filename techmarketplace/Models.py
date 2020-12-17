@@ -26,7 +26,7 @@ class Customer(database.Model, UserMixin):
     username = database.Column(database.String(50), unique=True)
     fname = database.Column(database.String(45))
     lname = database.Column(database.String(45))
-    contact = database.Column(database.Integer())
+    contact = database.Column(database.String(8))
     email = database.Column(database.String(45),unique=True)
     password_hash = database.Column(database.Text())
     password_salt = database.Column(database.Text())
