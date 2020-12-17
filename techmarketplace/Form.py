@@ -8,7 +8,7 @@ class RegisterForm(FlaskForm):
     username = StringField('Username',validators=[validators.DataRequired('Username is required!'),validators.Length(min=8,max=50,message='Username must be between 8 to 50 characters'),validators.Regexp('^[A-Za-z\d]+$',message='Whitespace or any symbols is not allowed for Last Name')])
     fname = StringField('Name',validators=[validators.DataRequired('First Name is required'),validators.Length(max=45,message='First Name cannot exceed more than 45 characters'),validators.Regexp('^[A-Za-z]+$',message='Whitespace or any symbols is not allowed for First Name')])
     lname = StringField('Name',validators=[validators.DataRequired('Last Name is required'),validators.Length(max=45,message='Last name cannot exceed more than 45 characters'),validators.Regexp('^[A-Za-z]+$',message='Whitespace or any symbols is not allowed for Last Name')])
-    contact = IntegerField('Contact',validators=[validators.DataRequired('Contact is required'),validators.NumberRange(min=8,message='Contact should be 8 digits long!')])
+    contact = StringField('Contact',validators=[validators.DataRequired('Contact is required'),validators.Length(min=8,max=8,message='8 digit'),validators.regexp('[8|9]{1}[0-9]{7}',message='Invalid Contact!')])
     email = StringField('Email',validators=[validators.DataRequired('Email is required'),validators.Email(message='Please enter valid email address')])
     password = PasswordField('Password',validators=[validators.DataRequired('Password is required'),validators.EqualTo('confirm',message='Password does not match'),validators.Length(min=8,message='Password minimum 8 characters'),validators.Regexp('^.*(?=.{8,10})(?=.*[a-zA-Z])(?=.*?[A-Z])(?=.*\d)[a-zA-Z0-9!@£$%^&*()_+={}?:~\[\]]+$',message='Password must contain at least 8 characters with uppercase,lowercase,symbol and numbers.')])
     confirm = PasswordField('Confirm Password')
@@ -59,3 +59,6 @@ class ChangePasswordForm(FlaskForm):
     currentPassword = PasswordField('p',validators=[validators.DataRequired('Current Password is required')])
     newPassword = PasswordField('Password',validators=[validators.DataRequired('New passsword is required'),validators.EqualTo('confirm',message='Password does not match'),validators.Length(min=8,message='Password minimum 8 characters'),validators.Regexp('^.*(?=.{8,10})(?=.*[a-zA-Z])(?=.*?[A-Z])(?=.*\d)[a-zA-Z0-9!@£$%^&*()_+={}?:~\[\]]+$',message='Password must contain at least 8 characters with uppercase,lowercase,symbol and numbers.')])
     confirm = PasswordField('Confirm Password')
+
+class Confirm2faForm(FlaskForm):
+    token = StringField('Token',validators=[validators.DataRequired()])
