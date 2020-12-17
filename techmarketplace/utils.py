@@ -3,6 +3,8 @@ from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 from flask_mail import Message,Mail
 from math import radians, cos, sin, asin, sqrt
+from twilio.rest import Client, TwilioException
+from techmarketplace import Configuration
 import os
 import requests
 import re
@@ -149,4 +151,15 @@ def mailgun_send_messageV2(to,subject,html,sender):
               "text":html})
 
 
+def request_twilio_token(phone):
+    verify =  Client(Configuration.accountSID,Configuration.auth_token).verify.services(Configuration.serviceSID)
+    verify.verifications.create(to='+65'+phone,channel='sms')
 
+
+def verify_twilio_token(phone,token):
+    verify =  Client(Configuration.accountSID,Configuration.auth_token).verify.services(Configuration.serviceSID)
+    try:
+        result = verify.verification_checks.create(to='+65'+phone,code=token)
+    except TwilioException:
+        return False
+    return result.status == 'approved'
