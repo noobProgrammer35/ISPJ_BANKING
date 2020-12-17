@@ -5,22 +5,17 @@ from flask_mail import Mail,Message
 from flask_login import current_user,login_user,logout_user
 from itsdangerous import URLSafeTimedSerializer
 from mysql import connector
-from techmarketplace import utils,Models,vault,log
-from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm
+from techmarketplace import utils,Models,vault,log,Configuration
+from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm
 from werkzeug.datastructures import Headers
 import os
 import redis
 from uuid import uuid4
 from datetime import timedelta, datetime
-import socket
 import requests
 
 
-
 users_blueprint = Blueprint('users',__name__,template_folder='templates')
-
-
-
 
 
 # @users_blueprint.route('/register',methods=['POST'])  # create user
@@ -210,9 +205,9 @@ def register():
 
 @users_blueprint.route('/login',methods=['POST'])
 def login():
+
     searchForm = SearchForm()
     if current_user.is_authenticated:
-        # print(current_user.username)
         abort(404)
     errors = ''
     form = LoginForm()
@@ -254,32 +249,35 @@ def login():
                 if user.verified == 1 and user.failed_attempt < 5:
                     print('verified authen')
                     u = Models.Customer.query.get(user.userid)
-                    session.destroy()
+                    # utils.request_twilio_token(user.contact)
                     login_user(u)
+                    # session.destroy()
                     try:
                         user.failed_attempt = 0
                         Models.database.session.commit()
                     except:
                         Models.database.session.rollback()
                     session.regenerate()
+                    session['username'] = user.username
+                    session['otp_session'] = datetime.now()
                     session['last_login'] = datetime.now()
-                    response = make_response(redirect(url_for('home_page')))
                     log.logger.info('{0} successfully logs into his account'.format(u.username))
-                    resp = make_response(redirect(url_for('home_page')))
+                    resp = make_response(redirect(url_for('verify_token')))
                     print(resp.headers['Location'])
-                    if resp.headers['Location'] == '/':
+                    if resp.headers['Location'] == '/VerifyToken':
                         return resp
                     else:
                         abort(404)
                 elif user.verified == 0 and user.failed_attempt < 5:
                     u = Models.Customer.query.get(user.userid)
-                    login_user(u)
+                    session['username'] = user.username
+                    # login_user(u)
                     try:
                         user.failed_attempt = 0
                         Models.database.session.commit()
                     except:
                         Models.database.session.rollback()
-                    session['last_login'] = datetime.now()
+                    # session['last_login'] = datetime.now()
                     log.logger.warning('{0} successfully logs into his account without activating it'.format(u.username))
                     resp = make_response(redirect(url_for('users.unconfirmed')))
                     if resp.headers['Location'] == '/unconfirmed':
@@ -314,7 +312,10 @@ def login():
         print(form.errors)
     if_prod = os.environ.get('IS_PROD',None)
 
-    return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
+    if session.get('username'):
+        return redirect(url_for('verify_token'))
+    else:
+        return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
 
 
 
@@ -599,4 +600,24 @@ def current():
     else:
         abort(404)
 
+
+@users_blueprint.route('/verify_2fa',methods=['POST','GET'])
+def verify_2fa():
+    form = Confirm2faForm()
+    if form.validate_on_submit():
+        username = Models.Customer.query.filter_by(username=session.get('username')).first()
+        print(username.contact)
+        phone = username.contact
+        if utils.verify_twilio_token(phone,form.token.data):
+            u = Models.Customer.query.get(username.userid)
+            # login_user(u)
+            # session.regenerate()
+            # session['last_login'] = datetime.now()
+            del session['username']
+            del session['otp_session']
+            response = make_response(redirect(url_for('home_page')))
+            if response.headers['Location'] == '/':
+                return response
+        else:
+            flash('Token Invalid. Try again or request new one.')
 
