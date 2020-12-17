@@ -152,12 +152,19 @@ def mailgun_send_messageV2(to,subject,html,sender):
 
 
 def request_twilio_token(phone):
-    verify =  Client(Configuration.accountSID,Configuration.auth_token).verify.services(Configuration.serviceSID)
+    if os.environ.get('IS_PROD',None):
+        verify = Client(os.environ.get('twilioSID',None),os.environ.get('TwilioAuthToken',None)).verify.services(os.environ.get('TwilioServiceID'))
+    else:
+        verify =  Client(Configuration.accountSID,Configuration.auth_token).verify.services(Configuration.serviceSID)
     verify.verifications.create(to='+65'+phone,channel='sms')
 
 
 def verify_twilio_token(phone,token):
-    verify =  Client(Configuration.accountSID,Configuration.auth_token).verify.services(Configuration.serviceSID)
+    if os.environ.get('IS_PROD', None):
+        verify = Client(os.environ.get('twilioSID', None), os.environ.get('TwilioAuthToken', None)).verify.services(
+            os.environ.get('TwilioServiceID'))
+    else:
+        verify = Client(Configuration.accountSID, Configuration.auth_token).verify.services(Configuration.serviceSID)
     try:
         result = verify.verification_checks.create(to='+65'+phone,code=token)
     except TwilioException:
