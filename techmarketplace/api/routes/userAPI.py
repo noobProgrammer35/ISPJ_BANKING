@@ -7,14 +7,14 @@ from itsdangerous import URLSafeTimedSerializer
 from mysql import connector
 import os
 from techmarketplace import utils,Models,vault,log
-if not os.environ.get('IS_PROD',True):
-    from techmarketplace import Configuration
 from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm
 from werkzeug.datastructures import Headers
 import redis
 from uuid import uuid4
 from datetime import timedelta, datetime
 import requests
+if not os.environ.get('IS_PROD',True):
+    from techmarketplace import Configuration
 
 
 users_blueprint = Blueprint('users',__name__,template_folder='templates')
