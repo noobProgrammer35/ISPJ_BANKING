@@ -273,7 +273,18 @@ class ProductModelView(ModelView):
         return abort(404)
 
 
+class BackupView(BaseView):
+    @expose('/')
+    def index(self):
+        table_names = database.engine.table_names()
+        return self.render('backup.html',table_names = table_names)
+
+
+
 admin.index_view = MyModelView(name='admin')
 admin.add_view(ProductModelView(Product,database.session,endpoint='product'))
 admin.add_view(CustomerModelView(Customer,database.session))
 admin.add_view(CustomerModelView(Account,database.session))
+admin.add_view(BackupView(name='Backup',endpoint='backup'))
+
+
