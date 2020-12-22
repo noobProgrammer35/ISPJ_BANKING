@@ -1,0 +1,53 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<h2>Manual Backup Utility</h2>
+<br>
+<h4 style ='font-weight:bold'>Please choose type of backup:</h4>
+<br>
+
+
+
+                    <div class="regular-page-content-wrapper section-padding-80">
+                        <div class="panel-group" id="accordion">
+                                <div class="panel panel-default">
+                                  <div class="panel-heading" style = 'background:#f2f2f2;border-radius:10px;height:40px;'>
+                                    <p class="panel-title" style="padding-left:10px;">
+                                      <a data-toggle="collapse" data-parent="#accordion" href="#collapse1" style = "color:black;font-size:20px;font-weight:normal;text-decoration:underline;">Local Backup</a>
+                                    </p>
+                                  </div>
+                                  <div id="collapse1" class="panel-collapse collapse in " style="padding:10px;border:1px solid #f2f2f2;border-radius:10px;">
+                                    <div class="panel-body">
+                                        <!-- this part form class and jinja pls-->
+                                        <!-- current just for UI !-->
+                                        <form action = '/backup_database' method="POST">
+                                             <label style ='color:blue'>Database backup:</label>
+
+                                        <select class ='form-control' name="type_select">
+                                              {% for table in table_names %}
+                                            <option value= "{{ table }}">{{ table }}</option>
+                                            {% endfor %}
+                                            <option value = "Full_Record">Full Record</option>
+                                        </select>
+
+                                        <br>
+                                        <center><input type="submit" value="Confirm" class="btn btn-default"></center>
+                                        </form>
+                                            <br>
+
+                                        <hr>
+                                        <label style ='color:blue'>Source Code Backup</label>
+
+                                    </div>
+                                  </div>
+
+
+                                </div>
+                                 <br>
+                        </div>
+                    </div>
+
+
+
+
+
+{% endblock body %}
