@@ -4,10 +4,14 @@ from flask import current_app
 from flask_mail import Message,Mail
 from math import radians, cos, sin, asin, sqrt
 from twilio.rest import Client, TwilioException
+from zipfile import ZipFile
 import os
 import requests
 import re
 import socket
+import subprocess
+import datetime
+
 if not os.environ.get('IS_PROD',None):
     from techmarketplace import Configuration
 
@@ -170,3 +174,28 @@ def verify_twilio_token(phone,token):
     except TwilioException:
         return False
     return result.status == 'approved'
+
+
+def check_exist(path):
+    if os.path.exists(path):
+        return True
+    else:
+        os.mkdir("D:/ManualBackup_Database")
+
+
+def database_backup(option):
+    default_path = "D:\\ManualBackup_Database\\"
+    date = datetime.datetime.today().now()
+    default_filename = "db_backup_"+datetime.datetime.strftime(date,'%Y%m%d')+".sql"
+    check_exist(default_path)
+    if not os.path.exists('D:/Manualbackup_Database/%s' % option):
+        os.mkdir('D:/Manualbackup_Database/%s' % option)
+    store = default_path + option + "/"
+    if option == 'Full_Record':
+        command = 'mysqldump -uroot -pHenry123 -hlocalhost mydb -r %s'%(store+default_filename)
+        os.chdir('C:/Program Files/MySQL/MySQL Workbench 8.0 CE')
+        subprocess.call(command)
+    else:
+        command = 'mysqldump -uroot -pHenry123 -hlocalhost mydb %s -r %s'%(option,store+default_filename)
+        os.chdir("C:/Program Files/MySQL/MySQL Workbench 8.0 CE")
+        subprocess.call(command)
