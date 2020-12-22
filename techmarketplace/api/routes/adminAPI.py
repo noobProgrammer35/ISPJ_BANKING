@@ -5,6 +5,7 @@ from flask_login import login_user,logout_user,current_user
 from techmarketplace import utils
 from werkzeug.utils import secure_filename
 from datetime import datetime
+import sqlalchemy
 import pyqrcode
 import os
 import io
@@ -223,3 +224,11 @@ def edit(productid):
                     product.model = model
                     AdminModels.database.session.commit()
                     return redirect(url_for('product.index_view'))
+
+
+@admin_blueprint.route('/backup_database',methods=['GET','POST'])
+def backup_database():
+    if request.method == 'POST':
+        table = request.form.get('type_select')
+        utils.database_backup(table)
+        return redirect(url_for('admin.index'))
