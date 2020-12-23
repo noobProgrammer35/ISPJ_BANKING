@@ -32,10 +32,22 @@
                                         <br>
                                         <center><input type="submit" value="Confirm" class="btn btn-default"></center>
                                         </form>
+
                                             <br>
 
                                         <hr>
-                                        <label style ='color:blue'>Source Code Backup</label>
+                                        <form action ='/source_code_backup' method = 'POST'>
+                                            <label style ='color:blue'>Source Code Backup</label>
+                                            <select class ='form-control' name ='code_select'>
+                                                <option value = 'Source Code'>Source Code Files Only</option>
+                                                <option value = 'HTML files'>HTML Files Only</option>
+                                                <option value = 'Full Backup'>Backup all Important Files</option>
+                                            </select>
+                                            <br>
+                                                <center><input type="submit" value="Confirm" class="btn btn-default"></center>
+                                        </form>
+
+
 
                                     </div>
                                   </div>
