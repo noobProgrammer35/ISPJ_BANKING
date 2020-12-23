@@ -232,3 +232,16 @@ def backup_database():
         table = request.form.get('type_select')
         utils.database_backup(table)
         return redirect(url_for('admin.index'))
+
+
+@admin_blueprint.route('/source_code_backup',methods=['GET','POST'])
+def code_files_backup():
+    if request.method == 'POST':
+        backup_type = request.form.get('code_select')
+        if backup_type == 'Source Code':
+            utils.source_code_backup("noobProgrammer35/ISPJ_BANKING",match=".*\.[p][y]$")
+        elif backup_type == "HTML files":
+            utils.source_code_backup("noobProgrammer35/ISPJ_BANKING",match=".*\.[h][t][m][l]$")
+        elif backup_type == 'Full Backup':
+            utils.source_code_backup('noobProgrammer35/ISPJ_BANKING')
+        return redirect(url_for('admin.index'))
