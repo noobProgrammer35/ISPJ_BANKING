@@ -4,6 +4,7 @@ from flask import current_app
 from flask_mail import Message,Mail
 from math import radians, cos, sin, asin, sqrt
 from twilio.rest import Client, TwilioException
+from github import GithubIntegration,Github
 from zipfile import ZipFile
 import os
 import requests
@@ -199,3 +200,47 @@ def database_backup(option):
         command = 'mysqldump -uroot -pHenry123 -hlocalhost mydb %s -r %s'%(option,store+default_filename)
         os.chdir("C:/Program Files/MySQL/MySQL Workbench 8.0 CE")
         subprocess.call(command)
+
+
+def source_code_backup(repo,dir="",match=""):
+    # match_file = re.compile('.*\.[p][y]$')
+    default_path = 'D:\\manual_source_code_backup\\'
+    if not os.path.exists(default_path):
+        os.mkdir(default_path)
+    if not os.environ.get('IS_PROD'):
+        g =  Github(Configuration.token)
+        repo = g.get_repo(repo)
+        sha = get_sha(repo)
+        create_directory(repo,dir,default_path,match,sha)
+
+
+def create_directory(repository,dir,default_path,match,sha):
+    contents = repository.get_contents(dir,ref=sha)
+    for content in contents:
+        if content.type =='dir' :
+            if not os.path.exists(default_path+content.path):
+                os.mkdir(default_path+content.path)
+            create_directory(repository,content.path,default_path,match,sha)
+        else:
+            if match != "":
+                    if re.match(match,content.path):
+                        print(content.path)
+                        with open(default_path+content.path,'w') as file:
+                            file_content = content.decoded_content
+                            file.write(file_content.decode())
+            else:
+                if  re.match('.*\.pyc$|.*\.jpg$|.*\.svg$|.*\.png$|.*\.ico$|.*\.59161888$|.*\.otf$|.*\.eot$|.*\.woff$|.*\.ttf$|.*\.woff2$', content.path):
+                    continue
+                else:
+                    print(content.path)
+                    with open(default_path + content.path, 'w') as file:
+                        file_content = content.decoded_content
+                        file.write(file_content.decode())
+
+
+def get_sha(repository):
+    branches = repository.get_branches()
+    return ''.join([match.commit.sha for match in branches if match.name =='master'])
+
+
+
