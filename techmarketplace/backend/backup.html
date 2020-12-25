@@ -55,6 +55,28 @@
 
                                 </div>
                                  <br>
+
+                               <div class="panel panel-default">
+                                  <div class="panel-heading" style = 'background:#f2f2f2;border-radius:10px;height:40px;'>
+                                    <p class="panel-title" style="padding-left:10px;">
+                                      <a data-toggle="collapse" data-parent="#accordion" href="#collapse2" style = "color:black;font-size:20px;font-weight:normal;text-decoration:underline;">Remote Backup - This will be uploaded cloud server Amazon S3</a>
+                                    </p>
+                                  </div>
+                                  <div id="collapse2" class="panel-collapse collapse in" style="padding:10px;border:1px solid #f2f2f2;border-radius:10px;">
+                                    <div class="panel-body">
+                                        <!-- this part form class and jinja pls-->
+                                        <!-- current just for UI !-->
+                                        <form method ='POST' action="/offsite_backup" enctype="multipart/form-data">
+                                            <label>Name an existing or create new directory in S3 to store your desired to be uploaded (optional) Eg Single Folder: Folder. Multi-Folder: Folder/Folder </label><br>
+                                            <input class = 'form-control' type="text" placeholder="Directory Name" name="dir"><br><br>
+                                            <label>Upload File</label>
+                                            <input class="form-control" name="files[]" required multiple='true' type="file" placeholder="Upload"><br>
+                                            <center><input type="submit" value="Confirm" class="btn btn-outline-primary"></center>
+                                        </form>
+
+                                    </div>
+                                  </div>
+                                </div>
                         </div>
                     </div>
 
