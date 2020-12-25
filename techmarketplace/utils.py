@@ -266,3 +266,5 @@ def upload_to_s3(bucket_name,file_path,directory):
 
         print('Uploaded to Amazon S3')
 
+def test():
+    pass
