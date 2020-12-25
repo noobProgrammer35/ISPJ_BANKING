@@ -245,3 +245,21 @@ def code_files_backup():
         elif backup_type == 'Full Backup':
             utils.source_code_backup('noobProgrammer35/ISPJ_BANKING')
         return redirect(url_for('admin.index'))
+
+
+@admin_blueprint.route('/offsite_backup',methods=['POST','GET'])
+def offsite_backup():
+    if request.method == 'POST':
+        dir = request.form.get('dir')
+        if 'files[]' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        files = request.files.getlist('files[]')
+        for file in files:
+            if utils.allowed_file(file.filename):
+                print(dir)
+                print(secure_filename(file.filename))
+                file_name = secure_filename(file.filename)
+                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], file_name))
+                utils.upload_to_s3("ispj-bucket",'static/upload/{0}'.format(file_name),dir)
+        return redirect(url_for('admin.index'))
