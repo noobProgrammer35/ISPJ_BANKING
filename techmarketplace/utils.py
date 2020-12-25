@@ -6,7 +6,9 @@ from math import radians, cos, sin, asin, sqrt
 from twilio.rest import Client, TwilioException
 from github import GithubIntegration,Github
 from zipfile import ZipFile
+from botocore.exceptions import NoCredentialsError
 import os
+import boto3
 import requests
 import re
 import socket
@@ -111,7 +113,7 @@ def get_ipaddress():
     return ip_address
 
 def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','gif'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','gif','py','css','html','txt'}
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -243,4 +245,24 @@ def get_sha(repository):
     return ''.join([match.commit.sha for match in branches if match.name =='master'])
 
 
+def upload_to_s3(bucket_name,file_path,directory):
+    print('reached')
+    if not os.environ.get('IS_PROD'):
+        print(file_path)
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=Configuration.s3_access_token,
+            aws_secret_access_key=Configuration.s3_secret
+        )
+        try:
+            if directory == '':
+                s3.upload_file(file_path,bucket_name,os.path.basename(file_path))
+            else:
+                #create directory
+                s3.put_object(Bucket=bucket_name, Key=directory + '/')
+                s3.upload_file(file_path,bucket_name,"{0}/{1}".format(directory,os.path.basename(file_path)))
+        except NoCredentialsError:
+            print('Wrong Credentials')
+
+        print('Uploaded to Amazon S3')
 
