@@ -8,9 +8,11 @@ from flask_admin.helpers import flash_errors,get_redirect_target
 from flask_admin import Admin,AdminIndexView,expose,BaseView
 from flask_login import LoginManager,current_user, UserMixin,login_user,AnonymousUserMixin
 from flask import abort
-from wtforms import FileField
+from wtforms.fields import PasswordField
+from wtforms.utils import unset_value
+from wtforms import PasswordField,validators
+from techmarketplace import utils
 import os
-import base64
 import pyotp
 
 
@@ -21,15 +23,23 @@ login.session_protection = None
 
 @login.user_loader
 def get_id(adminid):
-    return Admin.query.get(int(adminid))
+    return Administrator.query.get(int(adminid))
 
 
 admin_role = database.Table('admin_role',database.Column('roleid',database.Integer,database.ForeignKey('roles.roleid'),primary_key=True),database.Column('adminid',database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True))
 
+class admin_roles(database.Model):
+    __tablename__ = 'admin_role'
+    __table_args__ = {'extend_existing': True}
+    roleid = database.Column(database.Integer,database.ForeignKey('roles.roleid'),primary_key=True)
+    adminid = database.Column(database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True)
+    permission = database.Column(database.String(45))
 
 class roles(database.Model):
     roleid = database.Column(database.Integer,primary_key=True)
     type = database.Column(database.String(30))
+
+
 
     def __init__(self,type):
         self.type = type
@@ -41,31 +51,35 @@ class roles(database.Model):
         return "<Role %r>" % self.roleid
 
 
-class Product(UserMixin,database.Model):
-    __tablename__ = 'products'
-    productid = database.Column(database.Integer,primary_key=True)
-    Name = database.Column(database.String(45))
-    Description = database.Column(database.String(100))
-    stock = database.Column(database.Integer)
-    price = database.Column(database.Float(2,6))
-    Image = database.Column(database.String)
-    Image2 = database.Column(database.String)
-    model = database.Column(database.String,unique=True)
 
-    def __init__(self,productName,productDescription,stock,price,imageFileName,Image2,model):
-        self.Name = productName
-        self.Description = productDescription
-        self.stock = stock
-        self.price = price
-        self.Image =imageFileName
-        self.Image2 = Image2
-        self.model = model
 
-    def get_id(self):
-        return self.productid
 
-    def __repr__(self):
-        return "<Product %r>" % self.productid
+#
+# class Product(UserMixin,database.Model):
+#     __tablename__ = 'products'
+#     productid = database.Column(database.Integer,primary_key=True)
+#     Name = database.Column(database.String(45))
+#     Description = database.Column(database.String(100))
+#     stock = database.Column(database.Integer)
+#     price = database.Column(database.Float(2,6))
+#     Image = database.Column(database.String)
+#     Image2 = database.Column(database.String)
+#     model = database.Column(database.String,unique=True)
+#
+#     def __init__(self,productName,productDescription,stock,price,imageFileName,Image2,model):
+#         self.Name = productName
+#         self.Description = productDescription
+#         self.stock = stock
+#         self.price = price
+#         self.Image =imageFileName
+#         self.Image2 = Image2
+#         self.model = model
+#
+#     def get_id(self):
+#         return self.productid
+#
+#     def __repr__(self):
+#         return "<Product %r>" % self.productid
 
 class Customer(database.Model):
     __tablename__ = 'users'
@@ -140,7 +154,7 @@ class MyModelView(AdminIndexView):
 admin = Admin(current_app, template_mode='bootstrap3',index_view=MyModelView())
 
 
-class Admin(database.Model,UserMixin):
+class Administrator(database.Model,UserMixin):
     __tablename__ = 'admins'
     adminid = database.Column(database.Integer(),primary_key=True)
     username = database.Column(database.String(45),unique=True)
@@ -150,6 +164,9 @@ class Admin(database.Model,UserMixin):
     otp_secret = database.Column(database.String(16))
     TFA = database.Column(database.Boolean)
     adminrole = database.relationship('roles',secondary=admin_role,backref=database.backref('admins',lazy='joined'))
+
+
+
 
     def __init__(self,username,password,contact):
         self.username = username
@@ -178,8 +195,9 @@ class Admin(database.Model,UserMixin):
         return  pyotp.totp.TOTP(self.otp_secret).provisioning_uri(self.username, issuer_name="Google")
 
     def verify_otp(self,token):
+        print('test')
         totp = pyotp.TOTP(self.otp_secret)
-        print(totp.now())
+        # print(totp.now())
         if token == totp.now():
             return True
         else:
@@ -191,24 +209,44 @@ class Admin(database.Model,UserMixin):
     def __repr__(self):
         return "<admin %r>" % self.adminid
 
+    @property
+    def Roles(self):
+        query_role = roles.query.join(admin_role).join(Administrator).filter(
+            admin_role.c.adminid == self.adminid and admin_role.c.roleid == roles.roleid).all()
+        return [role.type for role in query_role]
+
 
 class CustomerModelView(ModelView):
     column_exclude_list = ('password_salt', 'password_hash','credit_card')
-    can_create = False
-    form_excluded_columns = ('password_hash', 'password_salt','credit_card','account')
+    form_excluded_columns = ('password_hash', 'password_salt')
 
     def is_accessible(self):
         if current_user.is_authenticated:
             current_admin_id = current_user.adminid
-            query_role = roles.query.join(admin_role).join(Admin).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
-            print(query_role)
+            query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
             for role in query_role:
                 print(role.type)
-                if role.type == 'Super' or role.type == 'User Administrator':
+                if role.type == 'System Administrator' or role.type == 'User Administrator':
                     return True
 
     def inaccessible_callback(self, name, **kwargs):
         return abort(404)
+
+    def edit_form(self, obj=None):
+        form = super(CustomerModelView, self).edit_form(obj)
+        if is_permission_valid(4,3,'U'):
+            return form
+        else:
+            abort(403)
+
+
+    def create_form(self, obj=None):
+        form = super(CustomerModelView,self).create_form(obj)
+        if is_permission_valid(4,3,'C'):
+            return form
+        else:
+            abort(403)
+
 
 
     def delete_model(self, model):
@@ -218,59 +256,63 @@ class CustomerModelView(ModelView):
             :param model:
                 Model to delete
         """
-        try:
-            self.on_model_delete(model)
-            self.session.flush()
-            self.session.delete(model)
-            self.session.commit()
-        except Exception as ex:
-            flash(gettext('This user is associated to an account. Please delete the account first'),'error')
-            self.session.rollback()
+        if is_permission_valid(4,3,'D'):
 
-            return False
+            try:
+                self.on_model_delete(model)
+                self.session.flush()
+                self.session.delete(model)
+                self.session.commit()
+            except Exception as ex:
+                flash(gettext('This user is associated to an account. Please delete the account first'),'error')
+                self.session.rollback()
+
+                return False
+            else:
+                self.after_model_delete(model)
+
+            return True
         else:
-            self.after_model_delete(model)
+            flash(gettext('You do not have the permission to delete'), 'error')
 
-        return True
-
-class ProductModelView(ModelView):
-
-    create_template = 'product_create.html'
-    edit_template = 'edit_product.html'
-    def my_formatter(view,context,model,name):
-        if model.Image:
-            Image = "<img src ='../../static/upload/%s' height='100px' width='100px'>" % (model.Image)
-            return Markup(Image)
-
-    def _formatter(view, context, model, name):
-        if model.Image2:
-            Image = "<img src ='../../static/upload/%s' height='100px' width='100px'>" % (model.Image2)
-            return Markup(Image)
-
-    @expose('/edit/', methods=['GET', 'POST'])
-    def edit_view(self):
-        id = request.args.get('id')
-        self._template_args['product'] = Product.query.filter_by(productid=id).first()
-        return super(ProductModelView, self).edit_view()
-
-    column_formatters = dict(Image=my_formatter,Image2=_formatter)
-
-
-    def is_accessible(self):
-        if current_user.is_authenticated:
-            current_admin_id = current_user.adminid
-            # meaning of query_role
-            # select * from roles inner join admin_role
-            # on adnmin_role,roleid = roles.roleid inner join Admin a on a.adminid = admin_role.adminid
-            query_role = roles.query.join(admin_role).join(Admin).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
-            print(query_role)
-            for role in query_role:
-                print(role.type)
-                if role.type == 'Super' or role.type == 'Inventory Administrator':
-                    return True
-
-    def inaccessible_callback(self, name, **kwargs):
-        return abort(404)
+# class ProductModelView(ModelView):
+#
+#     create_template = 'product_create.html'
+#     edit_template = 'edit_product.html'
+#     def my_formatter(view,context,model,name):
+#         if model.Image:
+#             Image = "<img src ='../../static/upload/%s' height='100px' width='100px'>" % (model.Image)
+#             return Markup(Image)
+#
+#     def _formatter(view, context, model, name):
+#         if model.Image2:
+#             Image = "<img src ='../../static/upload/%s' height='100px' width='100px'>" % (model.Image2)
+#             return Markup(Image)
+#
+#     @expose('/edit/', methods=['GET', 'POST'])
+#     def edit_view(self):
+#         id = request.args.get('id')
+#         self._template_args['product'] = Product.query.filter_by(productid=id).first()
+#         return super(ProductModelView, self).edit_view()
+#
+#     column_formatters = dict(Image=my_formatter,Image2=_formatter)
+#
+#
+#     def is_accessible(self):
+#         if current_user.is_authenticated:
+#             current_admin_id = current_user.adminid
+#             # meaning of query_role
+#             # select * from roles inner join admin_role
+#             # on adnmin_role,roleid = roles.roleid inner join Admin a on a.adminid = admin_role.adminid
+#             query_role = roles.query.join(admin_role).join(Admin).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
+#             print(query_role)
+#             for role in query_role:
+#                 print(role.type)
+#                 if role.type == 'Super' or role.type == 'Inventory Administrator':
+#                     return True
+#
+#     def inaccessible_callback(self, name, **kwargs):
+#         return abort(404)
 
 
 class BackupView(BaseView):
@@ -279,12 +321,127 @@ class BackupView(BaseView):
         table_names = database.engine.table_names()
         return self.render('backup.html',table_names = table_names)
 
+    def is_accessible(self):
+        if current_user.is_authenticated:
+            # check role of admin
+            query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_user.adminid and admin_role.c.roleid == roles.roleid).all()
+            print(admin_role.c)
+            for role in query_role:
+                if role.type == 'System Administrator' or role.type == 'Backup Administrator':
+                    return True
+
+    def inaccessible_callback(self, name, **kwargs):
+        return abort(404)
+
+
+class AdministratorModelView(ModelView):
+
+
+    column_list = {'username','Roles','adminid','contact','Configure Permission'}
+    column_exclude_list = ('password_salt', 'password_hash','otp_secret','TFA')
+    form_excluded_columns = ('password_hash', 'password_salt','otp_secret','TFA')
+
+    def is_accessible(self):
+        if current_user.is_authenticated:
+            current_admin_id = current_user.adminid
+            query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
+            query = Administrator.query.join(admin_role).join(roles).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).first()
+            test = database.session.query(admin_role.c.adminid).join(Administrator).join(roles).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
+
+            print('===========================')
+            print('fucking cheebye')
+            print(test)
+            # understanding adminrole variable or backref
+            testref = current_user.adminrole
+            print([i.type for i in testref])
+            # for i in query:
+            #     print(i.roleid)
+            print('==============================')
+            for role in query_role:
+                print(role.type)
+                if role.type == 'System Administrator':
+                    return True
+
+    def get_create_form(self):
+        # original form provided by flask admin
+        form = super(AdministratorModelView,self).get_create_form()
+        form.password = PasswordField('Password',validators=[validators.DataRequired('Password is required'),validators.Length(min=8,message='Password minimum 8 characters'),validators.Regexp('^.*(?=.{8,10})(?=.*[a-zA-Z])(?=.*?[A-Z])(?=.*\d)[a-zA-Z0-9!@£$%^&*()_+={}?:~\[\]]+$',message='Password must contain at least 8 characters with uppercase,lowercase,symbol and numbers.')])
+
+        return form
+
+    def get_edit_form(self):
+        form = super(AdministratorModelView,self).get_edit_form()
+        print('==-=--=-=------------------------------------------------------------')
+
+
+        return form
+
+
+    def edit_form(self, obj=None):
+        form = super(AdministratorModelView,self).edit_form(obj)
+        form.password2 = PasswordField('Password', validators=[validators.Length(min=8,message='Password minimum 8 characters'),validators.Regexp('^.*(?=.{8,10})(?=.*[a-zA-Z])(?=.*?[A-Z])(?=.*\d)[a-zA-Z0-9!@£$%^&*()_+={}?:~\[\]]+$',message='Password must contain at least 8 characters with uppercase,lowercase,symbol and numbers.')])
+
+        return form
+
+    def _formatter(view, context, model, name):
+
+        t = model.adminid
+        _html = f'<a href ="/permissions/{t}">Edit Permission</a>'
+        return Markup(_html)
+
+    column_formatters = {'Configure Permission':_formatter}
+
+    # def create_form(self, obj=None):
+    #     # action original by flask admin
+    #     form = super(AdministratorModelView,self).create_form(obj)
+    #     print('fucl')
+    #     return form
+
+    def _on_model_change(self, form, model, is_created):
+        if is_created == True:
+            print(form.adminrole.data)
+            password = form.password.data
+            salt = utils.generate_salt()
+            hash = utils.generate_hash(password,salt)
+            admin = Administrator.query.filter_by(username=form.username.data).first()
+            admin.password_salt = salt
+            admin.password_hash = hash
+            admin.otp_secret = pyotp.random_base32()
+            database.session.commit()
+
+    def inaccessible_callback(self, name, **kwargs):
+        return abort(404)
+
+
+
+def is_permission_valid(role_1,role_2,permission):
+    datadict = {}
+    temp = []
+    current_admin_id = current_user.adminid
+    query = admin_roles.query.join(Administrator).join(roles).filter(
+        admin_roles.adminid == current_admin_id and admin_roles.roleid == roles.roleid).all()
+    rol = [i.roleid for i in query]
+    perm = [i.permission for i in query]
+    for i in range(len(rol)):
+        datadict[rol[i]] = perm[i]
+    if role_1 in datadict:
+        return True
+    elif role_2 in datadict:
+        perm = datadict[role_2]
+        print(perm)
+        temp.append(perm)
+        if permission in temp:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 admin.index_view = MyModelView(name='admin')
-admin.add_view(ProductModelView(Product,database.session,endpoint='product'))
+# admin.add_view(ProductModelView(Product,database.session,endpoint='product'))
 admin.add_view(CustomerModelView(Customer,database.session))
 admin.add_view(CustomerModelView(Account,database.session))
 admin.add_view(BackupView(name='Backup',endpoint='backup'))
-
-
+admin.add_view(AdministratorModelView(Administrator,database.session))
+# admin.add_view(EditPermissionView(name='Edit Permission',endpoint='permission'))
