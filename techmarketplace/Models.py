@@ -85,28 +85,29 @@ class KVSession(database.Model):
     def __repr__(self):
         return "<Session %r>" % self.key
 
-class Product(UserMixin,database.Model):
-    __tablename__ = 'products'
-    productid = database.Column(database.Integer,primary_key=True)
-    Name = database.Column(database.String(45))
-    Description = database.Column(database.String(100))
-    stock = database.Column(database.Integer)
-    price = database.Column(database.Float(2,6))
-    Image = database.Column(database.String)
-    Image2 = database.Column(database.String)
-    model = database.Column(database.String,unique=True)
-
-    def __init__(self,productName,productDescription,stock,price,imageFileName,Image2,model):
-        self.Name = productName
-        self.Description = productDescription
-        self.stock = stock
-        self.price = price
-        self.Image =imageFileName
-        self.Image2 = Image2
-        self.model = model
-
-    def get_id(self):
-        return self.productid
-
-    def __repr__(self):
-        return "<Product %r>" % self.productid
+# need to del
+# class Product(UserMixin,database.Model):
+#     __tablename__ = 'products'
+#     productid = database.Column(database.Integer,primary_key=True)
+#     Name = database.Column(database.String(45))
+#     Description = database.Column(database.String(100))
+#     stock = database.Column(database.Integer)
+#     price = database.Column(database.Float(2,6))
+#     Image = database.Column(database.String)
+#     Image2 = database.Column(database.String)
+#     model = database.Column(database.String,unique=True)
+#
+#     def __init__(self,productName,productDescription,stock,price,imageFileName,Image2,model):
+#         self.Name = productName
+#         self.Description = productDescription
+#         self.stock = stock
+#         self.price = price
+#         self.Image =imageFileName
+#         self.Image2 = Image2
+#         self.model = model
+#
+#     def get_id(self):
+#         return self.productid
+#
+#     def __repr__(self):
+#         return "<Product %r>" % self.productid
