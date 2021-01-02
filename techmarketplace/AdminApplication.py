@@ -72,7 +72,7 @@ def login():
 def twofactor():
 
     if 'user' in session:
-        admin = AdminModels.Admin.query.filter_by(username=session['user']).first()
+        admin = AdminModels.Administrator.query.filter_by(username=session['user']).first()
         if admin.TFA:
             form = TwoFactorForm()
             return render_template('twofactorPage.html',form=form) ,200 ,{
@@ -88,7 +88,7 @@ def twofactor():
 def TwoFactorSetup():
     if 'user' not in session:
         abort(404)
-    admin = AdminModels.Admin.query.filter_by(username=session['user']).first()
+    admin = AdminModels.Administrator.query.filter_by(username=session['user']).first()
     if admin is None:
         abort(404)
     if admin.TFA:
@@ -108,6 +108,33 @@ def logout():
 # @app.route('/a')
 # def admin_customer():
 #     return self.render('index.html')
+
+@app.route('/permissions/<int:adminid>')
+def permissions(adminid):
+    dataDict = {}
+    q=str()
+    p=str()
+    admin = str()
+    role= str()
+    current_admin_role = current_user.adminrole
+    print(current_admin_role)
+    current_role_type = [roles.type for roles in current_admin_role]
+    if 'System Administrator' in current_role_type:
+        admin =  AdminModels.Administrator.query.get(adminid)
+        query = AdminModels.admin_roles.query.join(AdminModels.Administrator).join(AdminModels.roles).filter(
+            AdminModels.admin_roles.adminid == adminid).all()
+        p = [q.permission for q in query]
+        print(p)
+        if admin != None:
+            role = admin.adminrole # [<Role 1>]
+            for roles in role:
+                q = AdminModels.database.session.query(AdminModels.admin_roles).join(AdminModels.Administrator).join(AdminModels.roles).filter(AdminModels.admin_roles.adminid == adminid and AdminModels.admin_roles.roleid == roles.roleid).all()
+
+
+    else:
+        abort(403)
+
+    return render_template('permission.html',admin=admin,role=role,permission=p)
 
 if __name__ == '__main__':
     # this works
