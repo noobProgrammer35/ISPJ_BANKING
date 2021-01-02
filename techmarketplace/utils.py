@@ -7,8 +7,6 @@ from twilio.rest import Client, TwilioException
 from github import GithubIntegration,Github
 from zipfile import ZipFile
 from botocore.exceptions import NoCredentialsError
-from flask_login import current_user
-from techmarketplace import AdminModels
 import os
 import boto3
 import requests
@@ -269,25 +267,3 @@ def upload_to_s3(bucket_name,file_path,directory):
         print('Uploaded to Amazon S3')
 
 
-def is_permission_valid(role_1,role_2,permission):
-    datadict = {}
-    temp = []
-    current_admin_id = current_user.adminid
-    query = AdminModels.admin_roles.query.join(AdminModels.Administrator).join(AdminModels.roles).filter(
-        AdminModels.admin_roles.adminid == current_admin_id and AdminModels.admin_roles.roleid == AdminModels.roles.roleid).all()
-    rol = [i.roleid for i in query]
-    perm = [i.permission for i in query]
-    for i in range(len(rol)):
-        datadict[rol[i]] = perm[i]
-    if role_1 in datadict:
-        return True
-    elif role_2 in datadict:
-        perm = datadict[role_2]
-        print(perm)
-        temp.append(perm)
-        if permission in temp:
-            return True
-        else:
-            return False
-    else:
-        return False
