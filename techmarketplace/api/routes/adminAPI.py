@@ -5,7 +5,7 @@ from flask_login import login_user,logout_user,current_user
 from techmarketplace import utils
 from werkzeug.utils import secure_filename
 from datetime import datetime
-import sqlalchemy
+from sqlalchemy import and_
 import pyqrcode
 import os
 import io
@@ -25,12 +25,12 @@ def login():
     if form.validate_on_submit():
         username =  form.username.data
         password = form.password.data
-        admin = AdminModels.Admin.query.filter_by(username=username).first()
+        admin = AdminModels.Administrator.query.filter_by(username=username).first()
         if admin != None:
             saved_password_salt = admin.password_salt
             password_hash = utils.generate_hash(password,saved_password_salt)
             if admin.verify_password(password_hash):
-                # current = AdminModels.Admin.query.get(admin.adminid)
+                # current = AdminModels.Administrator.query.get(admin.adminid)
                 # login_user(current)
                 if not admin.TFA:
                     session['user'] = admin.username
@@ -55,7 +55,7 @@ def login():
 def qrcode():
     if 'user' not in session:
         abort(404)
-    user = AdminModels.Admin.query.filter_by(username=session['user']).first()
+    user = AdminModels.Administrator.query.filter_by(username=session['user']).first()
     if user is None:
         abort(404)
     print(user)
@@ -73,7 +73,7 @@ def qrcode():
 def authenticate():
     if 'user' not in session:
         abort(404)
-    user = AdminModels.Admin.query.filter_by(username=session['user']).first()
+    user = AdminModels.Administrator.query.filter_by(username=session['user']).first()
     if user is None:
         abort(404)
     if not user.TFA:
@@ -85,7 +85,7 @@ def authenticate():
         print('dadadadadadad')
         token = form.token.data
         if user.verify_otp(token):
-            current = AdminModels.Admin.query.get(user.adminid)
+            current = AdminModels.Administrator.query.get(user.adminid)
             login_user(current)
             return redirect(url_for('admin.index'))
     else:
@@ -97,7 +97,7 @@ def authenticate():
 def TFASetup():
     if 'user' not in session:
         abort(404)
-    admin = AdminModels.Admin.query.filter_by(username=session['user']).first()
+    admin = AdminModels.Administrator.query.filter_by(username=session['user']).first()
     if admin is None:
         abort(404)
     if admin.TFA:
@@ -230,36 +230,105 @@ def edit(productid):
 def backup_database():
     if request.method == 'POST':
         table = request.form.get('type_select')
-        utils.database_backup(table)
-        return redirect(url_for('admin.index'))
+        if AdminModels.is_permission_valid(4, 1, 'C'):
+            utils.database_backup(table)
+            flash('Files backup successfully to D:/ManualBackup_Database', 'success')
+            return redirect('/admin/backup')
+        else:
+            flash('You do not have the permission to do this action', 'error')
+            return redirect('/admin/backup')
 
 
 @admin_blueprint.route('/source_code_backup',methods=['GET','POST'])
 def code_files_backup():
     if request.method == 'POST':
         backup_type = request.form.get('code_select')
-        if backup_type == 'Source Code':
-            utils.source_code_backup("noobProgrammer35/ISPJ_BANKING",match=".*\.[p][y]$")
-        elif backup_type == "HTML files":
-            utils.source_code_backup("noobProgrammer35/ISPJ_BANKING",match=".*\.[h][t][m][l]$")
-        elif backup_type == 'Full Backup':
-            utils.source_code_backup('noobProgrammer35/ISPJ_BANKING')
-        return redirect(url_for('admin.index'))
+        if AdminModels.is_permission_valid(4,1,'C'):
+            code_backup(backup_type)
+            flash('Files backup successfully to D:/ManualBackupDatabase', 'success')
+            return redirect('/admin/backup')
+        else:
+            flash('You do not have the permission to do this action', 'error')
+            return redirect('/admin/backup')
 
 
 @admin_blueprint.route('/offsite_backup',methods=['POST','GET'])
 def offsite_backup():
     if request.method == 'POST':
-        dir = request.form.get('dir')
-        if 'files[]' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        files = request.files.getlist('files[]')
-        for file in files:
-            if utils.allowed_file(file.filename):
-                print(dir)
-                print(secure_filename(file.filename))
-                file_name = secure_filename(file.filename)
-                file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], file_name))
-                utils.upload_to_s3("ispj-bucket",'static/upload/{0}'.format(file_name),dir)
-        return redirect(url_for('admin.index'))
+        if AdminModels.is_permission_valid(4, 1, 'CU'):
+            offsite()
+            flash('Files backup successfully to S3 AMAZON', 'success')
+            return redirect('/admin/backup')
+        else:
+            flash('You do not have the permission to do this action', 'error')
+            return redirect('/admin/backup')
+
+
+@admin_blueprint.route('/edit_permission/<role>/<adminid>',methods=['POST','GET'])
+def edit_permission(role,adminid):
+    print(role,adminid)
+    print('ITS WORKIGN!')
+    current_admin_role = current_user.adminrole
+    print(current_admin_role)
+    current_role_type = [roles.type for roles in current_admin_role]
+    if 'System Administrator' in current_role_type:
+        if request.method == 'POST':
+            val = request.form.getlist('perm')
+            permission = "".join(val)
+            admin_role = AdminModels.admin_role
+            query = AdminModels.database.session.query(AdminModels.admin_roles).filter(and_(AdminModels.admin_roles.adminid==adminid,AdminModels.admin_roles.roleid==role)).first()
+            print('ITS WORKING X@')
+            print(query)
+            query.permission = permission
+            AdminModels.database.session.commit()
+    else:
+        abort(403)
+    return redirect(url_for('permissions',adminid=adminid))
+
+
+def code_backup(keyword):
+    if keyword == 'Source Code':
+        utils.source_code_backup("noobProgrammer35/ISPJ_BANKING", match=".*\.[p][y]$")
+    elif keyword == "HTML files":
+        utils.source_code_backup("noobProgrammer35/ISPJ_BANKING", match=".*\.[h][t][m][l]$")
+    elif keyword == 'Full Backup':
+        utils.source_code_backup('noobProgrammer35/ISPJ_BANKING')
+    return redirect(url_for('admin.index'))
+
+def offsite():
+    dir = request.form.get('dir')
+    if 'files[]' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    files = request.files.getlist('files[]')
+    for file in files:
+        if utils.allowed_file(file.filename):
+            print(dir)
+            print(secure_filename(file.filename))
+            file_name = secure_filename(file.filename)
+            file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], file_name))
+            utils.upload_to_s3("ispj-bucket", 'static/upload/{0}'.format(file_name), dir)
+
+
+def is_permission_valid(role_1,role_2,permission):
+    datadict = {}
+    temp = []
+    current_admin_id = current_user.adminid
+    query = AdminModels.admin_roles.query.join(AdminModels.Administrator).join(AdminModels.roles).filter(
+        AdminModels.admin_roles.adminid == current_admin_id and AdminModels.admin_roles.roleid == AdminModels.roles.roleid).all()
+    rol = [i.roleid for i in query]
+    perm = [i.permission for i in query]
+    for i in range(len(rol)):
+        datadict[rol[i]] = perm[i]
+    if role_1 in datadict:
+        return True
+    elif role_2 in datadict:
+        perm = datadict[role_2]
+        print(perm)
+        temp.append(perm)
+        if permission in temp:
+            return True
+        else:
+            return False
+    else:
+        return False
