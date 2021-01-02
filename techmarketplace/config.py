@@ -33,7 +33,7 @@ def create_app():
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('CLEARDB_DATABASE_URL') #v.get_secret('DatabaseConnectionString')
     else:
         from techmarketplace import Configuration
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format(Configuration.dbuser,Configuration.dbpw)  # get from key vault
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://{0}:{1}@localhost/projectdb'.format(Configuration.dbuser,Configuration.dbpw)  # get from key vault
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['MYSQL_DATABASE_CHARSET'] = 'utf8mb4'
