@@ -14,6 +14,7 @@ import re
 import socket
 import subprocess
 import datetime
+import codecs
 
 if not os.environ.get('IS_PROD',None):
     from techmarketplace import Configuration
@@ -227,7 +228,7 @@ def create_directory(repository,dir,default_path,match,sha):
             if match != "":
                     if re.match(match,content.path):
                         print(content.path)
-                        with open(default_path+content.path,'w') as file:
+                        with codecs.open(default_path+content.path,'w','utf-8') as file:
                             file_content = content.decoded_content
                             file.write(file_content.decode())
             else:
@@ -235,7 +236,7 @@ def create_directory(repository,dir,default_path,match,sha):
                     continue
                 else:
                     print(content.path)
-                    with open(default_path + content.path, 'w') as file:
+                    with codecs.open(default_path + content.path, 'w','utf-8') as file:
                         file_content = content.decoded_content
                         file.write(file_content.decode())
 
