@@ -2,7 +2,6 @@ import logging
 import os
 from techmarketplace import vault
 from flask import request
-from selenium import  webdriver
 import datetime
 import psutil
 from opencensus.ext.azure.log_exporter import AzureLogHandler
