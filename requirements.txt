@@ -96,3 +96,4 @@ twilio==6.50.1
 PyGithub==1.54.1
 boto3==1.16.47
 botocore==1.19.47
+bs4==0.0.1
