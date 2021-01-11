@@ -18,7 +18,7 @@ else:
         engine = create_engine(os.environ.get('CLEARDB_DATABASE_URL'))
     else:
         from techmarketplace import  Configuration
-        engine = create_engine('mysql+mysqlconnector://{0}:{1}@localhost/mydb'.format(Configuration.dbuser,Configuration.dbpw))
+        engine = create_engine('mysql+mysqlconnector://{0}:{1}@localhost/projectdb'.format(Configuration.dbuser,Configuration.dbpw))
     metadata = MetaData(bind=engine)
     store = SQLAlchemyStore(engine, metadata, 'session')
     # metadata.create_all()
