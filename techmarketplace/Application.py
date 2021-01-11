@@ -50,7 +50,7 @@ csp = {
 csrf = CSRFProtect(app)
 #session protection
 paranoid = Paranoid(app)
-talisman = Talisman(app,content_security_policy=csp)
+# talisman = Talisman(app,content_security_policy=csp)
 paranoid.redirect_view = 'localhost:5000/register'
 
 
@@ -355,3 +355,4 @@ if __name__ == '__main__':
         app.run()
     else:
         app.run(debug=True,port=9999)
+        # app.run(host="192.168.1.5")
