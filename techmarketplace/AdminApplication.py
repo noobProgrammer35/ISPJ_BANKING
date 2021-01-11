@@ -2,7 +2,7 @@ from flask import jsonify,request,flash,Flask,render_template,redirect,session,u
 from flask_wtf.csrf import CSRFProtect,CSRFError
 from flask_sqlalchemy import *
 from techmarketplace.Form import RegisterForm, LoginForm,AdminLoginForm,TwoFactorForm
-from techmarketplace import aconfig
+from techmarketplace import aconfig,utils
 from flask_login import login_user,logout_user,current_user
 from flask_talisman import Talisman
 from flask_paranoid import Paranoid
@@ -30,14 +30,14 @@ with app.app_context():
     # except:
     #     AdminModels.database.session.rollback()
 
-csp = {
-        'default-src': ['\'self\'','https://fonts.googleapis.com/css'],
-        'img-src': '\'self\' data:',
-        'style-src': '\'unsafe-inline\' \'self\'',
-        'script-src': '\'self\''
-
-}
-talisman = Talisman(app,content_security_policy=csp)
+# csp = {
+#         'default-src': ['\'self\'','https://fonts.googleapis.com/css'],
+#         'img-src': '\'self\' data:',
+#         'style-src': '\'unsafe-inline\' \'self\'',
+#         'script-src': '\'self\' \'unsafe-inline\''
+#
+# }
+# talisman = Talisman(app)
 paranoid = Paranoid(app)
 paranoid.redirect_view = 'https://google.com'
 
@@ -135,6 +135,13 @@ def permissions(adminid):
         abort(403)
 
     return render_template('permission.html',admin=admin,role=role,permission=p)
+
+@app.route('/search_result')
+def vuln_search_result():
+    query = request.args.get('query')
+    vuln_dict = utils.vulnerablility_search(query)
+    print(vuln_dict)
+    return render_template("search.html",dict_item = vuln_dict)
 
 if __name__ == '__main__':
     # this works
