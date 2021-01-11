@@ -333,6 +333,22 @@ class BackupView(BaseView):
     def inaccessible_callback(self, name, **kwargs):
         return abort(404)
 
+class VulnerabilityView(BaseView):
+    @expose('/')
+    def index(self):
+        package_version_dict = utils.library_installed()
+        print(package_version_dict)
+        package_dict = utils.outdated_version()
+        return self.render('vulnerability.html',package_version_dict=package_version_dict,package_dict=package_dict)
+
+    # def is_accessible(self):
+    #     if current_user.is_authenticated:
+    #         query_role = roles.query.join(admin_role).join(Administrator).filter(
+    #             admin_role.c.adminid == current_user.adminid and admin_role.c.roleid == roles.roleid).all()
+    #         print(admin_role.c)
+    #         for role in query_role:
+    #             if role.type == 'System Administrator':
+    #                 return True
 
 class AdministratorModelView(ModelView):
 
@@ -438,6 +454,7 @@ def is_permission_valid(role_1,role_2,permission):
         return False
 
 
+
 admin.index_view = MyModelView(name='admin')
 # admin.add_view(ProductModelView(Product,database.session,endpoint='product'))
 admin.add_view(CustomerModelView(Customer,database.session))
@@ -445,3 +462,4 @@ admin.add_view(CustomerModelView(Account,database.session))
 admin.add_view(BackupView(name='Backup',endpoint='backup'))
 admin.add_view(AdministratorModelView(Administrator,database.session))
 # admin.add_view(EditPermissionView(name='Edit Permission',endpoint='permission'))
+admin.add_view(VulnerabilityView(name='Vulnerability',endpoint='vulnerability'))
