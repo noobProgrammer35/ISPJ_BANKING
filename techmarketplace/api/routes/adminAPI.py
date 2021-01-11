@@ -1,14 +1,18 @@
-from flask import Blueprint,render_template,request,redirect,url_for,session,jsonify,flash,abort,current_app,json
-from techmarketplace.Form import AdminLoginForm,TwoFactorForm
-from techmarketplace import AdminModels,utils
-from flask_login import login_user,logout_user,current_user
-from techmarketplace import utils
-from werkzeug.utils import secure_filename
-from datetime import datetime
-from sqlalchemy import and_
-import pyqrcode
-import os
-import io
+try:
+    from flask import Blueprint,render_template,request,redirect,url_for,session,jsonify,flash,abort,current_app,json,make_response
+    from techmarketplace.Form import AdminLoginForm,TwoFactorForm
+    from techmarketplace import AdminModels,utils
+    from flask_login import login_user,logout_user,current_user
+    from techmarketplace import utils
+    from werkzeug.utils import secure_filename
+    from datetime import datetime
+    from sqlalchemy import and_
+    import pyqrcode
+    import os
+    import io
+    import subprocess
+except:
+    print('ddd')
 
 
 admin_blueprint = Blueprint('admins',__name__,template_folder='backend')
@@ -285,6 +289,36 @@ def edit_permission(role,adminid):
         abort(403)
     return redirect(url_for('permissions',adminid=adminid))
 
+@admin_blueprint.route('/vuln_search',methods=['POST'])
+def vuln_ssearch():
+    if request.method == 'POST':
+        query = request.form['query']
+        response = make_response(redirect(url_for('vuln_search_result',query=query)))
+        return response
+
+@admin_blueprint.route('/upgrade/<package>',methods=['POST'])
+def upgrade(package):
+    if request.method == 'POST':
+        subprocess.call('pip install --target "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" --upgrade {0}'.format(package), shell=True)
+    return redirect('/admin/vulnerability')
+
+@admin_blueprint.route('/upgrade_checked',methods=['POST'])
+def upgrade_checked():
+    if request.method == 'POST':
+        packages = request.form.getlist('package_checked')
+        print(packages)
+        if len(packages) != 0:
+            for package in packages:
+                try:
+                    subprocess.call('pip install --target "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" --upgrade {0}'.format(package), shell=True)
+                    # flash('Package successfully upgraded!','success')
+                    return redirect('/admin/vulnerability')
+                except:
+                    continue
+        else:
+            flash('Please check the box for the desired package you want to update','error')
+            return redirect('/admin/vulnerability')
+
 
 def code_backup(keyword):
     if keyword == 'Source Code':
@@ -332,3 +366,4 @@ def is_permission_valid(role_1,role_2,permission):
             return False
     else:
         return False
+
