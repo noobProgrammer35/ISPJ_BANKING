@@ -7,6 +7,7 @@ from twilio.rest import Client, TwilioException
 from github import GithubIntegration,Github
 from zipfile import ZipFile
 from botocore.exceptions import NoCredentialsError
+from bs4 import BeautifulSoup
 import os
 import boto3
 import requests
@@ -15,6 +16,7 @@ import socket
 import subprocess
 import datetime
 import codecs
+import outdated
 
 if not os.environ.get('IS_PROD',None):
     from techmarketplace import Configuration
@@ -268,3 +270,49 @@ def upload_to_s3(bucket_name,file_path,directory):
         print('Uploaded to Amazon S3')
 
 
+def vulnerablility_search(query):
+    dict = {}
+    response = requests.get("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={0}".format(query))
+    soup = BeautifulSoup(response.text, "html.parser")
+    searchResult = soup.find('div', {'class': 'smaller'})
+    print(searchResult.text.strip())
+    if not "0" in searchResult.text:
+        Message = searchResult.text.strip()
+        CVE = soup.find_all('td', string=re.compile('^CVE-'))
+        # regex using negative lookahead. ?! =  assert when regex does not match.
+        description = soup.find_all('td', string=re.compile('^(?!CVE-|Go).+'))
+        for index in range(len(CVE)):
+            dict[CVE[index].text.strip()] = description[index].text.strip()
+        dict['Message'] = Message
+        return dict
+    else:
+        Message = searchResult.text.strip()
+        dict['Message'] = Message
+        return dict
+
+
+def library_installed():
+    subprocess.call('pip freeze --path "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" > requirements.txt',shell=True)
+    package_version = []
+    package_version_dict = {}
+    with open('requirements.txt','r') as lines:
+        for line in lines:
+            package_version.append(lines)
+            a = line.strip().split('==')
+            version_dict = {'Current_Version':a[1]}
+            package_version_dict[a[0].replace('_','-')] =version_dict
+
+    return package_version_dict
+
+def outdated_version():
+    subprocess.call('pip list --outdated  --path "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" > outdated.txt',shell=True)
+    package_dict = {}
+    if os.stat('outdated.txt').st_size != 0:
+        with open('outdated.txt', 'r') as line:
+            next(line)
+            next(line)
+            for lines in line:
+                package_dict[lines.split()[0]] = {'Current_Version': lines.split()[1],
+                                                  'Latest_Version': lines.split()[2],
+                                                  'PackageName': lines.split()[0]}
+    return package_dict
