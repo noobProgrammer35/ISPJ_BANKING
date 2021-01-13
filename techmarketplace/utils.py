@@ -116,7 +116,7 @@ def get_ipaddress():
     return ip_address
 
 def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','gif','py','css','html','txt'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg','gif','py','css','html','txt','docx'}
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -198,11 +198,11 @@ def database_backup(option):
         os.mkdir('D:/Manualbackup_Database/%s' % option)
     store = default_path + option + "/"
     if option == 'Full_Record':
-        command = 'mysqldump -uroot -pHenry123 -hlocalhost mydb -r %s'%(store+default_filename)
+        command = 'mysqldump -uroot -pHenry123 -hlocalhost projectdb -r %s'%(store+default_filename)
         os.chdir('C:/Program Files/MySQL/MySQL Workbench 8.0 CE')
         subprocess.call(command)
     else:
-        command = 'mysqldump -uroot -pHenry123 -hlocalhost mydb %s -r %s'%(option,store+default_filename)
+        command = 'mysqldump -uroot -pHenry123 -hlocalhost projectdb %s -r %s'%(option,store+default_filename)
         os.chdir("C:/Program Files/MySQL/MySQL Workbench 8.0 CE")
         subprocess.call(command)
 
