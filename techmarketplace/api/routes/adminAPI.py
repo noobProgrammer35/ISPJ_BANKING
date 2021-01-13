@@ -1,7 +1,7 @@
 try:
     from flask import Blueprint,render_template,request,redirect,url_for,session,jsonify,flash,abort,current_app,json,make_response
     from techmarketplace.Form import AdminLoginForm,TwoFactorForm
-    from techmarketplace import AdminModels,utils,classification
+    from techmarketplace import AdminModels,utils
     from flask_login import login_user,logout_user,current_user
     from techmarketplace import utils
     from werkzeug.utils import secure_filename
@@ -13,6 +13,9 @@ try:
     import subprocess
 except:
     print('ddd')
+
+if not os.environ.get('IS_PROD',True):
+    from techmarketplace import Configuration,classification
 
 
 admin_blueprint = Blueprint('admins',__name__,template_folder='backend')
@@ -343,14 +346,18 @@ def offsite():
             file_name = secure_filename(file.filename)
             file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], file_name))
             path = "static\\upload\\{0}".format(file_name)
-            response = classification.inspect_file("seismic-helper-301408",path,["STREET_ADDRESS","SINGAPORE_NATIONAL_REGISTRATION_ID_NUMBER","CREDIT_CARD_NUMBER"],0)
-            print(response.result.findings)
-            if response.result.findings == []:
+            if not os.environ.get('IS_PROD', True):
+                response = classification.inspect_file("seismic-helper-301408",path,["STREET_ADDRESS","SINGAPORE_NATIONAL_REGISTRATION_ID_NUMBER","CREDIT_CARD_NUMBER"],0)
+                print(response.result.findings)
+                if response.result.findings == []:
+                    utils.upload_to_s3("ispj-bucket", 'static/upload/{0}'.format(file_name), dir)
+                    flash('Files backup successfully to S3 AMAZON', 'success')
+                else:
+                    findings = [finding.info_type.name for finding in response.result.findings]
+                    flash(f"We detected that the file containing sensitive information such as {findings}","error")
+            else:
                 utils.upload_to_s3("ispj-bucket", 'static/upload/{0}'.format(file_name), dir)
                 flash('Files backup successfully to S3 AMAZON', 'success')
-            else:
-                findings = [finding.info_type.name for finding in response.result.findings]
-                flash(f"We detected that the file containing sensitive information such as {findings}","error")
         else:
             flash("This file is not allowed!",'error')
 
