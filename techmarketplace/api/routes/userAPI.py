@@ -6,7 +6,7 @@ from flask_login import current_user,login_user,logout_user
 from itsdangerous import URLSafeTimedSerializer
 from mysql import connector
 import os
-from techmarketplace import utils,Models,vault,log,classification
+from techmarketplace import utils,Models,vault,log
 from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm
 from werkzeug.datastructures import Headers
 import redis
@@ -14,7 +14,7 @@ from uuid import uuid4
 from datetime import timedelta, datetime
 import requests
 if not os.environ.get('IS_PROD',True):
-    from techmarketplace import Configuration
+    from techmarketplace import Configuration,classification
 
 
 users_blueprint = Blueprint('users',__name__,template_folder='templates')
@@ -118,13 +118,18 @@ def register():
 
         if email is None and username is None:
             user = ''
+            eresponse=''
+            presponse=''
+            if not os.environ.get('IS_PROD', True):
+                eresponse = classification.deidentify("seismic-helper-301408",form.email.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["EMAIL_ADDRESS"],"##")
+                presponse = classification.deidentify("seismic-helper-301408","+65"+form.contact.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["PHONE_NUMBER"],"##")
 
-            eresponse = classification.deidentify("seismic-helper-301408",form.email.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["EMAIL_ADDRESS"],"##")
-            presponse = classification.deidentify("seismic-helper-301408","+65"+form.contact.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["PHONE_NUMBER"],"##")
-            print(eresponse.item.value)
-            print(presponse.item.value)
             try:
-                user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),presponse.item.value,str(escape(form.confirm.data)),0,eresponse.item.value)
+                if not os.environ.get('IS_PROD', True):
+                    user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),presponse.item.value,str(escape(form.confirm.data)),0,eresponse.item.value)
+                else:
+                    user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),form.contact.data,str(escape(form.confirm.data)),0,form.email.data)
+
                 Models.database.session.add(user)
                 Models.database.session.commit()
             except Exception as errors:
