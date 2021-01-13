@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "seismic-helper-301408",
+  "private_key_id": "1d15208665630951b4f3eece7da2e729034a2c9c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCi0abvmbn7pHfk\ngHGWGjZzovGNfvNcuwnl3iZ0EOX5kgqANGhDqULPGOUaUjpOy/ut+XdGMiCwg9bP\naT2z1LcfnY7/i34Y0QL2T2YgN4hJS60tsiSfMY4Q9lfwWJ9uj0WWvyVAJzWA994J\nh112P3WGB6Hj6BFhylXn74o6D5eoyV8qsFz1MHEubaHTvDuq4u6BKGfkCO2HF7tk\nOIfv9zgPS9HbPslqoPbVees259QUDdqz/1Wxz9WNusJ1QL77IQJbpIT29gYJlSU1\nt/QwNwPod8Lcy5D8xa8q2vTl4+jqWnVpe1mBAfnt79w2+VIjJhZOgoTBCvKCV3/5\nFiHZ12HHAgMBAAECggEALU5yifS4dIYhGJQHR3H22fmrBqkfVhvz1qOZBq4XGHnj\ncyZiJwXIAfHW+pqMABYx7AjhgEZ9ozCkiyWpVkuoQ2NoAcMSrRwoG1sfu3JIecDV\nqUQLfcLf2ed6s/YtMyop/pck6fOfJ0qR3gvtXXSuIsQn78/JWnFfs0EMMTjahkxF\nDquiWMbNkhSFkFBAl9txvKgF6XmSga+Jnhjin+9EThXY6dpLyMc58Gj8XEjKd+NC\nGdPwM/3NFvEP7Hkpg0YROiO5S0YfgLPXOst+OKvrkavIjF0Go45tN4rn6E8bwNiu\njHBnGP1iAjFd0rTp3qV6TjpdQVqx2xh5ESVpAECEMQKBgQDOR8rboOjmXLOeuZIX\nnaftO+ri0deLZdb7AJMjjwKRHLKfClQ3bvoB+vdFBZlP3ggV0Yrc2rs3PigEjru1\nbXzQ7C3moiiGg0RawFolTGB+TbbOgyY+Ue/JTsJQZEg3VWlC2v9DoAjhLPPs+fNl\nPez6fwu5Qldqt808l9pEaYRBVwKBgQDKECM42Ky4wnAr3sfFuvRbxxRBOfuz/p8B\nAqGDukXHtsKfvxemkYFeBAOcSQAXQRhcvn1X7fgV4ZlemPPk1NNqi5MfhV/mu56G\nqT1sOutbi8jVaKpJBa/oZqlWddDzv+CtLpJ/C1p2eBEN3FsMpeTOL4Pip3mHx7Mo\n9YPnoottEQKBgGa8WswH1/bjNJJY2enpGzmMHe/ZkwBaODfKkX2kPCMJp+yNuGPj\nYaCa3YwCvdiJPH2hXwef6J4a1tNuQw6Y+REUj8fN+2EC/4gzRLJO18AP9Hvl1aY0\nKLiaAS0IxO7KGyKw73E+wy1ithnQYuiJbv1TSQN7hw4ffJgxCQQJiVUBAoGAbbl9\npuziPiI3z1rWmKUA9KWSdikKaZ+msGHBW0rXga/Y1+5o5Wa2HVuIqmFpzzbmB9bZ\nMdpjkV5Ebn4YUvbPJ1hLuB4xCZZwayeT1yXXkIrDsD952NVhxI2a/vxTT0mus9xK\naPq9UP+6IxC50JB1QxHCSF4xPG5Q97j6u9okZEECgYBdGkA3anXKo9rFfTVEhrgl\n/+JNI1VpVyrth4iw5z6UUkjU/cyBSLsmWQ6XA/DGzskLZCteojj5WSsLeGlA2B21\nx3FedHHfCIXLuISQiDsJQersv0gLphGnLusXTGcaW24SrNhieTZaM2BYgjuH4j7T\nafVxMcth/F46KHOd2UpwVA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "dlp-371@seismic-helper-301408.iam.gserviceaccount.com",
+  "client_id": "105005479595713425518",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dlp-371%40seismic-helper-301408.iam.gserviceaccount.com"
+}
