@@ -6,7 +6,7 @@ from flask_login import current_user,login_user,logout_user
 from itsdangerous import URLSafeTimedSerializer
 from mysql import connector
 import os
-from techmarketplace import utils,Models,vault,log
+from techmarketplace import utils,Models,vault,log,classification
 from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm
 from werkzeug.datastructures import Headers
 import redis
@@ -83,6 +83,7 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
+        wrap_key = classification.get_wrapped_key("seismic-helper-301408","global","ispj","ISPJ_KEY")
         if request.content_type != r'application/x-www-form-urlencoded':
             log.logger.error('Incorrect content type format')
             abort(404)
@@ -111,12 +112,19 @@ def register():
                 if resp.headers['Location'] == '/register':
                     return resp
 
+        # du[;ication check
         username = Models.Customer.query.filter_by(username=str(escape(form.username.data))).first()
         email = Models.Customer.query.filter_by(email=str(escape(form.email.data))).first()
+
         if email is None and username is None:
             user = ''
+
+            eresponse = classification.deidentify("seismic-helper-301408",form.email.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["EMAIL_ADDRESS"],"##")
+            presponse = classification.deidentify("seismic-helper-301408","+65"+form.contact.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["PHONE_NUMBER"],"##")
+            print(eresponse.item.value)
+            print(presponse.item.value)
             try:
-                user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),form.contact.data,str(escape(form.confirm.data)),0,str(escape(form.email.data)))
+                user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),presponse.item.value,str(escape(form.confirm.data)),0,eresponse.item.value)
                 Models.database.session.add(user)
                 Models.database.session.commit()
             except Exception as errors:
@@ -273,13 +281,15 @@ def login():
                 elif user.verified == 0 and user.failed_attempt < 5:
                     u = Models.Customer.query.get(user.userid)
                     session['username'] = user.username
-                    # login_user(u)
+                    # to be commented out
+                    login_user(u)
                     try:
                         user.failed_attempt = 0
                         Models.database.session.commit()
                     except:
                         Models.database.session.rollback()
-                    # session['last_login'] = datetime.now()
+                    # to be commented out
+                    session['last_login'] = datetime.now()
                     log.logger.warning('{0} successfully logs into his account without activating it'.format(u.username))
                     resp = make_response(redirect(url_for('users.unconfirmed')))
                     if resp.headers['Location'] == '/unconfirmed':
