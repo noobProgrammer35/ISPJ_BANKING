@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}NTechBanking - Deposit{% endblock %}
+
+{% block content %}
+ <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8">
+                    <div class="regular-page-content-wrapper section-padding-80">
+                         <h2>Deposit</h2>
+                            <p>Please enter amount to deposit in dollars ($)</p>
+                        <div class="regular-page-text">
+                            <form action="/deposit/{{current_user.username}}" method="post">
+                                {{form.hidden_tag()}}
+                                 <div class="input-group flex-nowrap">
+                              <div class="input-group-prepend">
+                                <span class="input-group-text" id="addon-wrapping">Amount</span>
+                              </div>
+                                {{ form.amount(class_='form-control',placeholder='$') }}
+                                 </div>
+                                <br>
+                               <center> <input type ='submit' class="btn btn-outline-primary"></center>
+
+                            </form>
+
+                         </div>
+                    </div>
+                </div>
+            </div>
+  </div>
+{% endblock %}
