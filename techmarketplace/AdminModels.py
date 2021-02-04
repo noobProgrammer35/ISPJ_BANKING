@@ -26,14 +26,25 @@ def get_id(adminid):
     return Administrator.query.get(int(adminid))
 
 
-admin_role = database.Table('admin_role',database.Column('roleid',database.Integer,database.ForeignKey('roles.roleid'),primary_key=True),database.Column('adminid',database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True))
+# admin_role = database.Table('admin_role',database.Column('roleid',database.Integer,database.ForeignKey('roles.roleid'),primary_key=True),database.Column('adminid',database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True))
 
-class admin_roles(database.Model):
-    __tablename__ = 'admin_role'
+admin_roles = database.Table('admin_roles',database.Column('type',database.String(50),database.ForeignKey('role.type'),primary_key=True),database.Column('adminid',database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True))
+
+
+# class admin_roles(database.Model):
+#     __tablename__ = 'admin_role'
+#     __table_args__ = {'extend_existing': True}
+#     roleid = database.Column(database.Integer,database.ForeignKey('roles.roleid'),primary_key=True)
+#     adminid = database.Column(database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True)
+#     permission = database.Column(database.String(45))
+
+class admin_role(database.Model):
+    __tablename__ = 'admin_roles'
     __table_args__ = {'extend_existing': True}
-    roleid = database.Column(database.Integer,database.ForeignKey('roles.roleid'),primary_key=True)
+    type = database.Column(database.String(50),database.ForeignKey('role.type'),primary_key=True)
     adminid = database.Column(database.Integer(),database.ForeignKey('admins.adminid'),primary_key=True)
     permission = database.Column(database.String(45))
+
 
 class roles(database.Model):
     roleid = database.Column(database.Integer,primary_key=True)
@@ -49,6 +60,22 @@ class roles(database.Model):
 
     def __repr__(self):
         return "<Role %r>" % self.roleid
+
+
+class role(database.Model):
+    __tablename__= "role"
+    type = database.Column(database.String(50),primary_key=True)
+
+
+
+    def __init__(self,type):
+        self.type = type
+
+    def set_roleid(self,roleid):
+        self.roleid = roleid
+
+    def __repr__(self):
+        return  self.type
 
 
 
@@ -120,6 +147,9 @@ class Customer(database.Model):
         salt = os.urandom(16)
         return salt.hex()
 
+    def __repr__(self):
+        return self.username
+
 
 class Account(database.Model):
     __tablename__ = 'account'
@@ -163,8 +193,8 @@ class Administrator(database.Model,UserMixin):
     contact = database.Column(database.Integer())
     otp_secret = database.Column(database.String(16))
     TFA = database.Column(database.Boolean)
-    adminrole = database.relationship('roles',secondary=admin_role,backref=database.backref('admins',lazy='joined'))
-
+    # adminrole = database.relationship('roles',secondary=admin_role,backref=database.backref('admins',lazy='joined'))
+    adminroles = database.relationship('role',secondary=admin_roles,backref=database.backref('admins',lazy='joined'))
 
 
 
@@ -211,42 +241,61 @@ class Administrator(database.Model,UserMixin):
 
     @property
     def Roles(self):
-        query_role = roles.query.join(admin_role).join(Administrator).filter(
-            admin_role.c.adminid == self.adminid and admin_role.c.roleid == roles.roleid).all()
-        return [role.type for role in query_role]
+        # query_role = rol.query.join(admin_role).join(Administrator).filter(
+        #     admin_role.c.adminid == self.adminid and admin_role.c.roleid == roles.roleid).all()
+        query_role = role.query.join(admin_roles).join(Administrator).filter(
+             admin_roles.c.adminid == self.adminid and admin_roles.c.roleid == roles.roleid).all()
+        return [r.type for r in query_role]
+
+    @property
+    def Permissions(self):
+        query = admin_role.query.join(role).join(Administrator).filter(admin_roles.c.adminid == self.adminid and admin_roles.c.roleid == roles.roleid).all()
+        return [r.permission for r in query]
 
 
 class CustomerModelView(ModelView):
-    column_exclude_list = ('password_salt', 'password_hash','credit_card')
-    form_excluded_columns = ('password_hash', 'password_salt')
+    column_exclude_list = ('password_salt', 'password_hash','credit_card',"failed_attempt","failed_login_time")
+    form_excluded_columns = ('password_hash', 'password_salt',"failed_attempt","failed_login_time")
 
     def is_accessible(self):
         if current_user.is_authenticated:
-            current_admin_id = current_user.adminid
-            query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
-            for role in query_role:
-                print(role.type)
-                if role.type == 'System Administrator' or role.type == 'User Administrator':
+            for r in current_user.adminroles:
+                if r.type == "USER ADMINISTRATOR":
                     return True
+
 
     def inaccessible_callback(self, name, **kwargs):
         return abort(404)
 
     def edit_form(self, obj=None):
         form = super(CustomerModelView, self).edit_form(obj)
-        if is_permission_valid(4,3,'U'):
+        if is_permission_valid("USER ADMINISTRATOR",'U'):
             return form
         else:
             abort(403)
-
 
     def create_form(self, obj=None):
         form = super(CustomerModelView,self).create_form(obj)
-        if is_permission_valid(4,3,'C'):
+        if is_permission_valid('USER ADMINISTRATOR','C'):
             return form
         else:
             abort(403)
 
+    def get_create_form(self):
+        form = super(CustomerModelView,self).get_create_form()
+        form.password = PasswordField('Password',validators=[validators.DataRequired('Password is required'),validators.Length(min=8,message='Password minimum 8 characters'),validators.Regexp('^.*(?=.{8,10})(?=.*[a-zA-Z])(?=.*?[A-Z])(?=.*\d)[a-zA-Z0-9!@£$%^&*()_+={}?:~\[\]]+$',message='Password must contain at least 8 characters with uppercase,lowercase,symbol and numbers.')])
+        return form
+
+
+    def _on_model_change(self, form, model, is_created):
+        if is_created == True:
+            p = form.password.data
+            salt = utils.generate_salt()
+            hash = utils.generate_hash(p, salt)
+            user = Customer.query.filter_by(username=form.username.data).first()
+            user.password_hash = hash
+            user.password_salt = salt
+            database.session.commit()
 
 
     def delete_model(self, model):
@@ -256,7 +305,7 @@ class CustomerModelView(ModelView):
             :param model:
                 Model to delete
         """
-        if is_permission_valid(4,3,'D'):
+        if is_permission_valid('USER ADMINISTRATOR','D'):
 
             try:
                 self.on_model_delete(model)
@@ -264,7 +313,7 @@ class CustomerModelView(ModelView):
                 self.session.delete(model)
                 self.session.commit()
             except Exception as ex:
-                flash(gettext('This user is associated to an account. Please delete the account first'),'error')
+                flash(gettext('You cannot delete user who has an account or has transaction history. '),'error')
                 self.session.rollback()
 
                 return False
@@ -323,11 +372,8 @@ class BackupView(BaseView):
 
     def is_accessible(self):
         if current_user.is_authenticated:
-            # check role of admin
-            query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_user.adminid and admin_role.c.roleid == roles.roleid).all()
-            print(admin_role.c)
-            for role in query_role:
-                if role.type == 'System Administrator' or role.type == 'Backup Administrator':
+            for r in current_user.adminroles:
+                if r.type == "BACKUP ADMINISTRATOR":
                     return True
 
     def inaccessible_callback(self, name, **kwargs):
@@ -336,9 +382,10 @@ class BackupView(BaseView):
 class VulnerabilityView(BaseView):
     @expose('/')
     def index(self):
+        print(current_user.adminroles)
         package_version_dict = utils.library_installed()
-        print(package_version_dict)
         package_dict = utils.outdated_version()
+        print(package_dict)
         return self.render('vulnerability.html',package_version_dict=package_version_dict,package_dict=package_dict)
 
     # def is_accessible(self):
@@ -353,30 +400,33 @@ class VulnerabilityView(BaseView):
 class AdministratorModelView(ModelView):
 
 
-    column_list = {'username','Roles','adminid','contact','Configure Permission'}
+    column_list = {'username','Roles','adminid','contact','Configure Permission','Permissions'}
     column_exclude_list = ('password_salt', 'password_hash','otp_secret','TFA')
     form_excluded_columns = ('password_hash', 'password_salt','otp_secret','TFA')
 
     def is_accessible(self):
         if current_user.is_authenticated:
-            current_admin_id = current_user.adminid
-            query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
-            query = Administrator.query.join(admin_role).join(roles).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).first()
-            test = database.session.query(admin_role.c.adminid).join(Administrator).join(roles).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
-
-            print('===========================')
-            print('fucking cheebye')
-            print(test)
-            # understanding adminrole variable or backref
-            testref = current_user.adminrole
-            print([i.type for i in testref])
-            # for i in query:
-            #     print(i.roleid)
-            print('==============================')
-            for role in query_role:
-                print(role.type)
-                if role.type == 'System Administrator':
+            for r in current_user.adminroles:
+                if r.type == 'SYSTEM ADMINISTRATOR':
                     return True
+        # if current_user.is_authenticated:
+        #     current_admin_id = current_user.adminid
+        #     query_role = roles.query.join(admin_role).join(Administrator).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
+        #     query = Administrator.query.join(admin_role).join(roles).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).first()
+        #     test = database.session.query(admin_role.c.adminid).join(Administrator).join(roles).filter(admin_role.c.adminid == current_admin_id and admin_role.c.roleid == roles.roleid).all()
+        #
+        #     print('===========================')
+        #     print(test)
+        #     # understanding adminrole variable or backref
+        #     testref = current_user.adminrole
+        #     print([i.type for i in testref])
+        #     # for i in query:
+        #     #     print(i.roleid)
+        #     print('==============================')
+        #     for role in query_role:
+        #         print(role.type)
+        #         if role.type == 'System Administrator':
+        #             return True
 
     def get_create_form(self):
         # original form provided by flask admin
@@ -402,6 +452,7 @@ class AdministratorModelView(ModelView):
     def _formatter(view, context, model, name):
 
         t = model.adminid
+
         _html = f'<a href ="/permissions/{t}">Edit Permission</a>'
         return Markup(_html)
 
@@ -415,7 +466,6 @@ class AdministratorModelView(ModelView):
 
     def _on_model_change(self, form, model, is_created):
         if is_created == True:
-            print(form.adminrole.data)
             password = form.password.data
             salt = utils.generate_salt()
             hash = utils.generate_hash(password,salt)
@@ -429,24 +479,23 @@ class AdministratorModelView(ModelView):
         return abort(404)
 
 
-
-def is_permission_valid(role_1,role_2,permission):
+def is_permission_valid(role_2,permission):
     datadict = {}
     temp = []
     current_admin_id = current_user.adminid
-    query = admin_roles.query.join(Administrator).join(roles).filter(
-        admin_roles.adminid == current_admin_id and admin_roles.roleid == roles.roleid).all()
-    rol = [i.roleid for i in query]
+    # role object return
+    query = admin_role.query.join(Administrator).join(role).filter(
+        admin_role.adminid == current_admin_id and admin_role.type == role.type).all()
+    rol = [i.type for i in query]
     perm = [i.permission for i in query]
+    print(rol)
     for i in range(len(rol)):
         datadict[rol[i]] = perm[i]
-    if role_1 in datadict:
-        return True
-    elif role_2 in datadict:
+    if role_2 in datadict:
         perm = datadict[role_2]
         print(perm)
-        temp.append(perm)
-        if permission in temp:
+        # temp.append(perm)
+        if permission in perm:
             return True
         else:
             return False
