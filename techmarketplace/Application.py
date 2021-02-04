@@ -1,7 +1,7 @@
 from flask import jsonify,request,flash,Flask,render_template,redirect,session,url_for,Response,abort,json,escape,g,make_response
 from flask_wtf.csrf import CSRFProtect,CSRFError
 from flask_sqlalchemy import *
-from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,SearchForm,SupportForm,ChangePasswordForm,Confirm2faForm
+from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,SearchForm,SupportForm,ChangePasswordForm,Confirm2faForm,DepositForm,TransferForm
 from techmarketplace import utils,config,redisession
 from flask_login import current_user,logout_user
 from flask_paranoid import Paranoid
@@ -307,7 +307,8 @@ def current_password():
 def transfer(username):
     searchForm = SearchForm()
     if current_user.username == username:
-        return render_template('Transfer.html',searchForm=searchForm)
+        transfer = TransferForm()
+        return render_template('Transfer.html',searchForm=searchForm,form=transfer)
     else:
         abort(404)
 
@@ -335,6 +336,27 @@ def verify_token():
     else:
         abort(404)
 
+@app.route('/deposit/<username>')
+@login_required
+@verify_require
+def deposit(username):
+    searchForm =SearchForm()
+    if username ==  current_user.username:
+        deposit = DepositForm()
+        return render_template('Deposit.html',searchForm=searchForm, form=deposit), 200
+    else:
+        pass #log
+
+@app.route('/passbook/<username>')
+@login_required
+@verify_require
+def passbook(username):
+    searchForm = SearchForm()
+    if username == current_user.username:
+        passbookuser = current_user.passbookuser
+        print(passbookuser)
+        return render_template('passbook.html',searchForm=searchForm,item=passbookuser)
+
 
 if __name__ == '__main__':
     app.config.update(
@@ -354,5 +376,5 @@ if __name__ == '__main__':
         )
         app.run()
     else:
-        app.run(debug=True,port=9999)
+        app.run(debug=True,port=9999,ssl_context=('cert.pem', 'key.pem'))
         # app.run(host="192.168.1.5")
