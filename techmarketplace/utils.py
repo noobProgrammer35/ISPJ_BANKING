@@ -292,7 +292,7 @@ def vulnerablility_search(query):
 
 
 def library_installed():
-    subprocess.call('pip freeze --path "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" > requirements.txt',shell=True)
+    # subprocess.call('pip freeze --path "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" > requirements.txt',shell=True)
     package_version = []
     package_version_dict = {}
     with open('requirements.txt','r') as lines:
@@ -305,7 +305,7 @@ def library_installed():
     return package_version_dict
 
 def outdated_version():
-    subprocess.call('pip list --outdated  --path "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" > outdated.txt',shell=True)
+    subprocess.call('pip list --outdated > outdated.txt',shell=True)
     package_dict = {}
     if os.stat('outdated.txt').st_size != 0:
         with open('outdated.txt', 'r') as line:
