@@ -1,20 +1,20 @@
-try:
-    from flask import Blueprint,render_template,request,redirect,url_for,session,jsonify,flash,abort,current_app,json,make_response
-    from techmarketplace.Form import AdminLoginForm,TwoFactorForm
-    from techmarketplace import AdminModels,utils
-    from flask_login import login_user,logout_user,current_user
-    from techmarketplace import utils
-    from werkzeug.utils import secure_filename
-    from datetime import datetime
-    from sqlalchemy import and_
-    import pyqrcode
-    import os
-    import io
-    import subprocess
-except:
-    print('ddd')
+from email.mime.text import MIMEText
+from flask import Blueprint,render_template,request,redirect,url_for,session,jsonify,flash,abort,current_app,json,make_response
+from techmarketplace.Form import AdminLoginForm,TwoFactorForm
+from techmarketplace import AdminModels,utils
+from flask_login import login_user,logout_user,current_user
+from techmarketplace import utils
+from werkzeug.utils import secure_filename
+from datetime import datetime
+from sqlalchemy import and_
+import pyqrcode
+import os
+import io
+import subprocess
+import vulners
+import smtplib
 
-if not os.environ.get('IS_PROD',True):
+if not os.environ.get('IS_PROD'):
     from techmarketplace import Configuration,classification
 
 
@@ -170,7 +170,7 @@ def product_create():
             return redirect('/admin/product/new')
 
 
-@admin_blueprint.route('/edit_product/<productid>',methods=['POST'])
+@admin_blueprint.route('/edit_product/<prouctid>',methods=['POST'])
 def edit(productid):
     if request.method == 'POST':
         name = request.form['Name']
@@ -237,7 +237,7 @@ def edit(productid):
 def backup_database():
     if request.method == 'POST':
         table = request.form.get('type_select')
-        if AdminModels.is_permission_valid(4, 1, 'C'):
+        if AdminModels.is_permission_valid('BACKUP ADMINISTRATOR','C'):
             utils.database_backup(table)
             flash('Files backup successfully to D:/ManualBackup_Database', 'success')
             return redirect('/admin/backup')
@@ -250,7 +250,7 @@ def backup_database():
 def code_files_backup():
     if request.method == 'POST':
         backup_type = request.form.get('code_select')
-        if AdminModels.is_permission_valid(4,1,'C'):
+        if AdminModels.is_permission_valid('BACKUP ADMINISTRATOR', 'C'):
             code_backup(backup_type)
             flash('Files backup successfully to D:/ManualBackupDatabase', 'success')
             return redirect('/admin/backup')
@@ -262,7 +262,7 @@ def code_files_backup():
 @admin_blueprint.route('/offsite_backup',methods=['POST','GET'])
 def offsite_backup():
     if request.method == 'POST':
-        if AdminModels.is_permission_valid(4, 1, 'CU'):
+        if AdminModels.is_permission_valid('BACKUP ADMINISTRATOR', 'C'):
             offsite()
             return redirect('/admin/backup')
 
@@ -275,15 +275,15 @@ def offsite_backup():
 def edit_permission(role,adminid):
     print(role,adminid)
     print('ITS WORKIGN!')
-    current_admin_role = current_user.adminrole
+    current_admin_role = current_user.adminroles
     print(current_admin_role)
     current_role_type = [roles.type for roles in current_admin_role]
-    if 'System Administrator' in current_role_type:
+    if 'SYSTEM ADMINISTRATOR' in current_role_type:
         if request.method == 'POST':
             val = request.form.getlist('perm')
             permission = "".join(val)
             admin_role = AdminModels.admin_role
-            query = AdminModels.database.session.query(AdminModels.admin_roles).filter(and_(AdminModels.admin_roles.adminid==adminid,AdminModels.admin_roles.roleid==role)).first()
+            query = AdminModels.database.session.query(AdminModels.admin_role).filter(and_(AdminModels.admin_role.adminid==adminid,AdminModels.admin_role.type==role)).first()
             print('ITS WORKING X@')
             print(query)
             query.permission = permission
@@ -302,7 +302,7 @@ def vuln_ssearch():
 @admin_blueprint.route('/upgrade/<package>',methods=['POST'])
 def upgrade(package):
     if request.method == 'POST':
-        subprocess.call('pip install --target "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" --upgrade {0}'.format(package), shell=True)
+        subprocess.call('pip install  --upgrade {0}'.format(package), shell=True)
     return redirect('/admin/vulnerability')
 
 @admin_blueprint.route('/upgrade_checked',methods=['POST'])
@@ -313,7 +313,7 @@ def upgrade_checked():
         if len(packages) != 0:
             for package in packages:
                 try:
-                    subprocess.call('pip install --target "C:\\Users\\Henry Boey\\AppData\\Local\\Programs\\Python\\Python37-32\\Lib\\site-packages" --upgrade {0}'.format(package), shell=True)
+                    subprocess.call('pip install  --upgrade {0}'.format(package), shell=True)
                     # flash('Package successfully upgraded!','success')
                     return redirect('/admin/vulnerability')
                 except:
@@ -322,6 +322,72 @@ def upgrade_checked():
             flash('Please check the box for the desired package you want to update','error')
             return redirect('/admin/vulnerability')
 
+@admin_blueprint.route('/scan',methods=['POST'])
+def scan():
+    vulners_api = ""
+    if not os.getenv('IS_PROD'):
+        vulners_api = vulners.Vulners(Configuration.vulners_api)
+    vul_dict = {}
+    package_dict = {}
+    if os.stat('outdated.txt').st_size != 0:
+        with open('outdated.txt', 'r') as line:
+            next(line)
+            next(line)
+            for lines in line:
+                package_dict[lines.split()[0]] = {'Current_Version': lines.split()[1],
+                                                  'Latest_Version': lines.split()[2],
+                                                  'PackageName': lines.split()[0]}
+
+    print('reached?')
+    for key in package_dict:
+        print('reached?')
+        results = vulners_api.softwareVulnerabilities(key,package_dict[key]['Current_Version'])
+        print(key)
+        print(package_dict[key]['Current_Version'])
+        print(results)
+        if results:
+            if results.get('software'):
+                Message = " " + results['software'][0]['description'] + results['software'][0]['title']
+                cvss = results['software'][0]['cvss']['score']
+                cve = results['software'][0]['cvelist'][0]
+                print(Message)
+            elif results.get('NVD'):
+                Message = "" + results['NVD'][0]['description']
+                cvss = results['NVD'][0]['cvss']['score']
+                cve = results['NVD'][0]['cvelist'][0]
+            info = {'Message': Message, 'score': cvss, 'cvelist': cve,'Version':package_dict[key]['Current_Version'],'Latest':package_dict[key]['Latest_Version']}
+            vul_dict[key] = info
+            print(info)
+    if vul_dict:
+        message = ''
+        for key in vul_dict:
+            message +=f'Package Name: {key}\n'
+            message += f"Message: {vul_dict[key]['Message']}  \nScore: {vul_dict[key]['score']}\nCVELIST: {vul_dict[key]['cvelist']}"
+        construct_email(message)
+        flash("Scan completed. Please check your email.",'success')
+        return redirect('/admin/vulnerability')
+    else:
+        message = 'No vulnerability found. Good Job1'
+        construct_email(message)
+        flash("Scan completed. Please check your email.",'success')
+        return redirect('/admin')
+
+
+def construct_email(message):
+    msg = MIMEText(message)
+    msg['Subject'] = 'Dependency Check Result'
+    msg['From'] = 'piethonlee123@gmail.com'
+    msg['To'] = 'piethonlee123@gmail.com'
+    send_email(msg)
+
+
+def send_email(message):
+    smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
+    smtpObj.ehlo()
+    smtpObj.starttls()
+    smtpObj.ehlo()
+    smtpObj.login('pycharming123@gmail.com', 'ASPJPYTHON123')
+    smtpObj.sendmail('pycharming123@gmail.com','pycharming123@gmail.com',message.as_string())
 
 def code_backup(keyword):
     if keyword == 'Source Code':
@@ -346,7 +412,7 @@ def offsite():
             file_name = secure_filename(file.filename)
             file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], file_name))
             path = "static\\upload\\{0}".format(file_name)
-            if not os.environ.get('IS_PROD', True):
+            if not os.environ.get('IS_PROD'):
                 response = classification.inspect_file("seismic-helper-301408",path,["STREET_ADDRESS","SINGAPORE_NATIONAL_REGISTRATION_ID_NUMBER","CREDIT_CARD_NUMBER"],0)
                 print(response.result.findings)
                 if response.result.findings == []:
