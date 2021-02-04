@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm,RecaptchaField
 import os
-from wtforms import StringField,PasswordField,IntegerField,validators,TextAreaField,SelectField
+from wtforms import StringField,PasswordField,IntegerField,validators,TextAreaField,SelectField,DecimalField
 import email_validator
 
 
@@ -62,3 +62,11 @@ class ChangePasswordForm(FlaskForm):
 
 class Confirm2faForm(FlaskForm):
     token = StringField('Token',validators=[validators.DataRequired()])
+
+class DepositForm(FlaskForm):
+    amount = DecimalField("Amount",places=2,validators=[validators.DataRequired("This is a required field")])
+
+
+class TransferForm(FlaskForm):
+    email = StringField('Email',validators=[validators.DataRequired('Email is required'),validators.Email(message='Please enter valid email address')])
+    amount = DecimalField('Amount',places=2,validators=[validators.DataRequired("This is a required field")])
