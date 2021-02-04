@@ -19,6 +19,20 @@ login.needs_refresh_message_category = "info"
 def get_id(userid):
     return Customer.query.get(int(userid))
 
+passbook_user = database.Table('passbook_user',database.Column('passbookid',database.Integer,database.ForeignKey('passbook.passbookid'),primary_key=True),database.Column('userid',database.Integer(),database.ForeignKey('users.userid'),primary_key=True))
+
+class passbook_users(database.Model):
+    __tablename__ = 'passbook_user'
+    __table_args__ = {'extend_existing': True}
+    passbookid = database.Column(database.Integer,database.ForeignKey('passbook.passbookid'),primary_key=True)
+    userid = database.Column(database.Integer,database.ForeignKey('users.userid'),primary_key=True)
+
+    def __init__(self,passbookid,userid):
+        self.passbookid = passbookid
+        self.userid = userid
+
+    def __repr__(self):
+        return "<passbook_user %r>" % self.passbookid
 
 class Customer(database.Model, UserMixin):
     __tablename__ = 'users'
@@ -26,14 +40,16 @@ class Customer(database.Model, UserMixin):
     username = database.Column(database.String(50), unique=True)
     fname = database.Column(database.String(45))
     lname = database.Column(database.String(45))
-    contact = database.Column(database.String(8))
+    contact = database.Column(database.String(20))
     email = database.Column(database.String(45),unique=True)
     password_hash = database.Column(database.Text())
     password_salt = database.Column(database.Text())
     verified = database.Column(database.Boolean)
     failed_attempt = database.Column(database.Integer())
     failed_login_time = database.Column(database.TIMESTAMP())
+    balance = database.Column(database.Numeric(6,2))
     account = database.relationship('Account',uselist=False,backref='account',lazy=True)
+    passbookuser = database.relationship('passbook',secondary=passbook_user,backref=database.backref('users',lazy='joined'))
 
     def __init__(self,username,fname,lname,contact,password,verified,email):
         self.username = username
@@ -84,6 +100,25 @@ class KVSession(database.Model):
 
     def __repr__(self):
         return "<Session %r>" % self.key
+
+
+
+class passbook(database.Model):
+    __tablename__ = 'passbook'
+    passbookid = database.Column(database.Integer,primary_key=True,unique=True)
+    date = database.Column(database.DateTime())
+    details = database.Column(database.String(100))
+    amount = database.Column(database.Numeric())
+    new_balance = database.Column(database.Numeric())
+
+    def __init__(self,date,details,amount,new_balance):
+        self.date = date
+        self.details = details
+        self.amount = amount
+        self.new_balance = new_balance
+
+    def __repr__(self):
+        return "<Passbook %r>" % self.passbookid
 
 # need to del
 # class Product(UserMixin,database.Model):
