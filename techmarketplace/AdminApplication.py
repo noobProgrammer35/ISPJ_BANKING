@@ -111,24 +111,32 @@ def logout():
 
 @app.route('/permissions/<int:adminid>')
 def permissions(adminid):
+    if current_user.adminid == adminid:
+        flash("You cannot edit permissions for your ownself",'error')
+        return redirect('/admin/administrator')
+
+    # will add more stuff later here
+
     dataDict = {}
     q=str()
     p=str()
     admin = str()
     role= str()
-    current_admin_role = current_user.adminrole
+    current_admin_role = current_user.adminroles
     print(current_admin_role)
     current_role_type = [roles.type for roles in current_admin_role]
-    if 'System Administrator' in current_role_type:
+    if 'SYSTEM ADMINISTRATOR' in current_role_type:
         admin =  AdminModels.Administrator.query.get(adminid)
-        query = AdminModels.admin_roles.query.join(AdminModels.Administrator).join(AdminModels.roles).filter(
-            AdminModels.admin_roles.adminid == adminid).all()
+        query = AdminModels.admin_role.query.join(AdminModels.Administrator).join(AdminModels.role).filter(
+            AdminModels.admin_role.adminid == adminid).all()
+        print(query)
         p = [q.permission for q in query]
         print(p)
+        print('NoneTYPE???')
         if admin != None:
-            role = admin.adminrole # [<Role 1>]
-            for roles in role:
-                q = AdminModels.database.session.query(AdminModels.admin_roles).join(AdminModels.Administrator).join(AdminModels.roles).filter(AdminModels.admin_roles.adminid == adminid and AdminModels.admin_roles.roleid == roles.roleid).all()
+            role = admin.adminroles # [<Role 1>]
+            # for roles in role:
+            #     q = AdminModels.database.session.query(AdminModels.admin_roles).join(AdminModels.Administrator).join(AdminModels.roles).filter(AdminModels.admin_roles.adminid == adminid and AdminModels.admin_roles.roleid == roles.roleid).all()
 
 
     else:
@@ -150,4 +158,4 @@ if __name__ == '__main__':
     #     SESSION_COOKIE_HTTPONLY = True,
     #     SESSION_COOKIE_SAMESITE='Lax',
     # )
-    app.run(debug=True,host='127.0.0.1',port=5001)
+    app.run(host='127.0.0.1',port=5001)
