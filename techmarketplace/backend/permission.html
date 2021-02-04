@@ -1,0 +1,80 @@
+<!DOCTYPE>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <META HTTP-EQUIV="REFRESH" CONTENT="csrf_timeout_in_seconds">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title> Edit - Permission</title>
+   <link rel="stylesheet" href = "{{ url_for('static',filename = 'css/core-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename = 'css/style.css') }}">
+</head>
+<body>
+     <div class="single-blog-wrapper">
+
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8">
+                    <div class="regular-page-content-wrapper section-padding-80">
+                       <h1> {{ admin.username }}</h1>
+                        {% for i in range(role|length) %}
+                        <p>{{ role[i].type }} - {{ role[i].roleid }}</p>
+                        <form action="/edit_permission/{{role[i].type}}/{{admin.adminid}}" method="POST">
+                            {% if 'CUD' == permission[i] %}
+                                  <input type ='checkbox' name ='perm' value="C" checked><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" checked><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" checked><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                            {% elif 'CU' == permission[i] %}
+                                <input type ='checkbox' name ='perm' value="C" checked><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" checked><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" ><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                            {% elif 'C' == permission[i] %}
+                                  <input type ='checkbox' name ='perm' value="C" checked><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" c><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" ><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                             {% elif 'U' == permission[i] %}
+                                  <input type ='checkbox' name ='perm' value="C"><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" checked c><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" ><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                             {% elif 'D' == permission[i] %}
+                                  <input type ='checkbox' name ='perm' value="C" ><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" ><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" checked><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                             {% elif 'CD' == permission[i] %}
+                                  <input type ='checkbox' name ='perm' value="C" checked><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" ><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" checked ><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                             {% elif 'UD' == permission[i] %}
+                                  <input type ='checkbox' name ='perm' value="C"><label>&nbsp;Create</label><br>
+                                  <input type ='checkbox' name ='perm' value="U" checked><label>&nbsp;Update</label><br>
+                                  <input type ='checkbox' name ='perm' value="D" checked ><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                            {% else %}
+                                <input type ='checkbox' name ='perm' value="C"><label>&nbsp;Create</label><br>
+                                <input type ='checkbox' name ='perm' value="U"><label>&nbsp;Update</label><br>
+                                <input type ='checkbox' name ='perm' value="D"><label>&nbsp;Delete</label>
+                                <input type ='submit' name="submit" value ='Save' class ='btn btn-outline-primary' style ='float:right;'>
+                            {% endif %}
+                        </form>
+                        <hr>
+                        <br>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+     </div>
+<br>
+
+
+
+</body>
+
+</html>
