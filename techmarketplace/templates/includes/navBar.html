@@ -23,20 +23,22 @@
                                     <ul class="single-mega cn-col-4">
                                         <li class="title"><b>Secure Transaction</b></li>
                                         {% if not current_user.is_authenticated %}
-                                        <li><a href="/login">Local Transfer</a></li>
-                                        <li><a href="/login">Invest(?)</a></li>
+                                        <li><a href="/login">Transfer Amount</a></li>
+                                        <li><a href="/login">My Passbook</a></li>
                                         {% else %}
-                                         <li><a href="/transfer/{{ current_user.username }}">Transfers</a></li>
-                                        <li><a href ='#'>Invest(?)</a></li>
+                                         <li><a href="/transfer/{{ current_user.username }}">Transfer Amount</a></li>
+                                        <li><a href ='/passbook/{{current_user.username}}'>My Passbook</a></li>
                                         {% endif %}
                                     </ul>
                                     <ul class="single-mega cn-col-4">
                                         <li class="title"><b>Management</b></li>
                                         {% if not current_user.is_authenticated %}
-                                        <li><a href = "/login">E-Statement</a></li>
+                                        <li><a href = "/login">Check Balance</a></li>
+                                        <li><a href = "/login">Deposit</a></li>
                                         <li><a href="/login">Manage Your Account</a></li>
                                         {% else %}
-                                        <li><a href="/E_Statement/{{current_user.username}}">E-Statement</a></li>
+                                        <li><a href="/E_Statement/{{current_user.username}}">Check Balance</a></li>
+                                        <li><a href = '/deposit/{{current_user.username}}'>Deposit</a></li>
                                         <li><a href="/profile/{{ current_user.username }}">Manage Your Account - {{current_user.username}}</a></li>
                                         {% endif %}
                                     </ul>
