@@ -7,13 +7,13 @@ from itsdangerous import URLSafeTimedSerializer
 from mysql import connector
 import os
 from techmarketplace import utils,Models,vault,log
-from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm
+from techmarketplace.Form import RegisterForm, LoginForm,AccountForm,EmailForm,PasswordResetForm,SearchForm,SupportForm, ChangePasswordForm,Confirm2faForm,DepositForm,TransferForm
 from werkzeug.datastructures import Headers
 import redis
 from uuid import uuid4
 from datetime import timedelta, datetime
 import requests
-if not os.environ.get('IS_PROD',True):
+if not os.environ.get('IS_PROD'):
     from techmarketplace import Configuration,classification
 
 
@@ -83,7 +83,7 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        wrap_key = classification.get_wrapped_key("seismic-helper-301408","global","ispj","ISPJ_KEY")
+        print('fkffkfkfk')
         if request.content_type != r'application/x-www-form-urlencoded':
             log.logger.error('Incorrect content type format')
             abort(404)
@@ -120,13 +120,16 @@ def register():
             user = ''
             eresponse=''
             presponse=''
-            if not os.environ.get('IS_PROD', True):
-                eresponse = classification.deidentify("seismic-helper-301408",form.email.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["EMAIL_ADDRESS"],"##")
-                presponse = classification.deidentify("seismic-helper-301408","+65"+form.contact.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["PHONE_NUMBER"],"##")
-
+            print('wtf')
+            if not os.environ.get('IS_PROD'):
+                wrap_key = classification.get_wrapped_key("seismic-helper-301408", "global", "ispj", "ISPJ_KEY")
+                #eresponse = classification.deidentify("seismic-helper-301408",form.email.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["EMAIL_ADDRESS"],"##")
+                presponse = classification.deidentify("seismic-helper-301408",form.fname.data,"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ~`!@#$%^&*()_-+={[}]|:;'<,>.?/\"",wrap_key,["FIRST_NAME"],"##")
+                print(presponse)
+                print('dog')
             try:
-                if not os.environ.get('IS_PROD', True):
-                    user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),presponse.item.value,str(escape(form.confirm.data)),0,eresponse.item.value)
+                if not os.environ.get('IS_PROD'):
+                    user = Models.Customer(str(escape(form.username.data)),presponse.item.value,form.lname.data,form.contact.data,str(escape(form.confirm.data)),0,form.email.data)
                 else:
                     user = Models.Customer(str(escape(form.username.data)),str(escape(form.fname.data)),str(escape(form.lname.data)),form.contact.data,str(escape(form.confirm.data)),0,form.email.data)
 
@@ -264,18 +267,19 @@ def login():
                 if user.verified == 1 and user.failed_attempt < 5:
                     print('verified authen')
                     u = Models.Customer.query.get(user.userid)
-                    # utils.request_twilio_token(user.contact)
-                    login_user(u)
+                    utils.request_twilio_token(user.contact)
+                    # login_user(u)
                     # session.destroy()
                     try:
                         user.failed_attempt = 0
                         Models.database.session.commit()
-                    except:
+                    except Exception as errors:
+                        log.logger.exception(errors)
                         Models.database.session.rollback()
-                    session.regenerate()
+                    # session.regenerate()
                     session['username'] = user.username
                     session['otp_session'] = datetime.now()
-                    session['last_login'] = datetime.now()
+                    # session['last_login'] = datetime.now()
                     log.logger.info('{0} successfully logs into his account'.format(u.username))
                     resp = make_response(redirect(url_for('verify_token')))
                     print(resp.headers['Location'])
@@ -287,14 +291,15 @@ def login():
                     u = Models.Customer.query.get(user.userid)
                     session['username'] = user.username
                     # to be commented out
-                    login_user(u)
+                    # login_user(u)
                     try:
                         user.failed_attempt = 0
                         Models.database.session.commit()
                     except:
                         Models.database.session.rollback()
                     # to be commented out
-                    session['last_login'] = datetime.now()
+                    # session['last_login'] = datetime.now()
+                    session['otp_session'] = datetime.now()
                     log.logger.warning('{0} successfully logs into his account without activating it'.format(u.username))
                     resp = make_response(redirect(url_for('users.unconfirmed')))
                     if resp.headers['Location'] == '/unconfirmed':
@@ -302,15 +307,16 @@ def login():
                     else:
                         abort(404)
                 elif user.failed_attempt >= 5:
-                    abort(404)
+                    flash("This account is locked. Please contact us through support for help.")
             else:
                 if user.failed_attempt >= 5:
-                    flash('This account has been locked!')
+                    flash("This account is locked. Please contact us through support for help.")
                 try:
                     print('irfan')
                     if user.failed_attempt < 5:
                         errors = 'Invalid username or password'
                         user.failed_attempt += 1
+                        log.logger.warning(f"{user.username} login invalid credential of {user.failed_attempt} times")
                         if user.failed_attempt == 5:
                             log.logger.critical('An attempt to sign in with {0} has failed more than 5 times. Please investigate this issue'.format(user.username))
                             utils.mailgun_send_message(user.email,'test','<p>dwdwd</p>')
@@ -318,7 +324,8 @@ def login():
                         Models.database.session.commit()
                     elif user.failed_attempt >= 5:
                         abort(404)
-                except:
+                except Exception as errors:
+                    log.logger.exception(errors)
                     Models.database.session.rollback()
 
         else:
@@ -332,7 +339,10 @@ def login():
     if session.get('username'):
         return redirect(url_for('verify_token'))
     else:
-        return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
+        try:
+            return render_template('login.html',form=form,errors=errors,searchForm=searchForm,if_prod=if_prod)
+        except:
+            return render_template('login.html',form=form,searchForm=searchForm,if_prod=if_prod)
 
 
 
@@ -352,6 +362,9 @@ def confirm_email(token):
     # finally:
     #     mycursor.close()
     #     conn.close()
+
+    #unmask later
+
     email = utils.confirmation_token(token)
     if not email:
         flash('Token expired. Please identify yourself first by logging in to request for another token')
@@ -425,6 +438,7 @@ def accountUpdate(username):
             user.account.payment_method = form.payment_method.data
             user.account.credit_card = bytes(form.credit_card.data,'utf-8') #key_vault.encrypt(username,form.credit_card.data)
             user.account.address = form.address.data
+            log.logger.info(f'{user.username} has changed his account information.')
             Models.database.session.commit()
             key_vault.key_client.close()
             key_vault.secret_client.close()
@@ -627,9 +641,9 @@ def verify_2fa():
         phone = username.contact
         if utils.verify_twilio_token(phone,form.token.data):
             u = Models.Customer.query.get(username.userid)
-            # login_user(u)
-            # session.regenerate()
-            # session['last_login'] = datetime.now()
+            login_user(u)
+            session.regenerate()
+            session['last_login'] = datetime.now()
             del session['username']
             del session['otp_session']
             response = make_response(redirect(url_for('home_page')))
@@ -637,4 +651,77 @@ def verify_2fa():
                 return response
         else:
             flash('Token Invalid. Try again or request new one.')
+
+@users_blueprint.route('/deposit/<username>', methods=["POST"])
+def deposit(username):
+    form = DepositForm()
+    if current_user.username == username:
+        if form.validate_on_submit():
+            amount = form.amount.data
+            user = Models.Customer.query.filter_by(username=current_user.username).first()
+            print(user.balance)
+            if user.balance is None:
+                user.balance = amount
+            else:
+                user.balance += amount
+
+            passbook = Models.passbook(datetime.now(),"Initial Deposits",amount,user.balance)
+            Models.database.session.add(passbook)
+            try:
+
+                Models.database.session.commit()
+            except:
+                Models.database.session.rollback()
+            passbook_user = Models.passbook_users(passbook.passbookid, current_user.userid)
+            print(passbook.passbookid)
+            try:
+
+                Models.database.session.add(passbook_user)
+                Models.database.session.commit()
+            except:
+                Models.database.session.rollback()
+            flash('Deposited Successfully')
+            return redirect('/E_Statement/'+current_user.username)
+    else:
+        pass
+
+@users_blueprint.route('/transfer/<username>',methods=['POST'])
+def transfer(username):
+    form = TransferForm()
+    if form.validate_on_submit():
+        if current_user.username == username:
+            email = form.email.data
+            transfer = form.amount.data
+            source = Models.Customer.query.filter_by(username=current_user.username).first()
+            recipient = Models.Customer.query.filter_by(email=email).first()
+            if recipient and recipient.email != current_user.email:
+                if transfer != source.balance:
+                    source.balance -= transfer
+                    recipient.balance += transfer
+                    source_passbook = Models.passbook(datetime.now(),f"{source.email} transferred to {recipient.email}",transfer,source.balance)
+                    recipient_passbook = Models.passbook(datetime.now(),f"Received from {source.email}",transfer,recipient.balance)
+                    Models.database.session.add(source_passbook)
+                    Models.database.session.add(recipient_passbook)
+                    try:
+                        Models.database.session.commit()
+                    except:
+                        Models.database.session.rollback()
+
+                    passbook_src = Models.passbook_users(source_passbook.passbookid,source.userid)
+                    passbook_rcpt = Models.passbook_users(recipient_passbook.passbookid,recipient.userid)
+                    Models.database.session.add(passbook_src)
+                    Models.database.session.add(passbook_rcpt)
+                    try:
+                        Models.database.session.commit()
+                    except:
+                        Models.database.session.rollback()
+                    return redirect("/passbook/"+current_user.username)
+                else:
+                    flash('Exceeded the balance you have!')
+                    return redirect("/transfer/" + current_user.username)
+
+            else:
+                flash('Email does not exist')
+                return redirect("/transfer/"+current_user.username)
+
 
